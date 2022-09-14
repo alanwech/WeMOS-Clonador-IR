@@ -5,7 +5,7 @@
 
 #ifndef STASSID
 #define STASSID "WechAPLinksys"
-#define STAPSK  ""
+#define STAPSK  "" //COMPLETAR CON PASSWORD FUERA DE GIT
 #endif
 
 const char* ssid = STASSID;
@@ -17,7 +17,12 @@ const int led = 13;
 
 void handleRoot() {
   digitalWrite(led, 1);
-  server.send(200, "text/plain", "hello from esp8266!\r\n");
+  //server.send(200, "text/plain", "hello from esp8266!\r\n");
+  server.send(
+    200,
+    "html",
+    "<!DOCTYPE html><html><meta name=\"viewport\" content=\"width=device-width, initial-scale=2.0\"><body><h1>Clonador de controles remotos IR con WeMOS</h1><form action=\"/action_page.php\"> <label for=\"dispositivo\">Elija el dispositivo a controlar</label> <select name=\"dispositivo\" id=\"dispositivo\"> <option value=\"tv\">Television</option> <option value=\"ac\">Aire Acondicionado</option> <option value=\"proy\">Proyector</option> </select> <br><br> <input type=\"submit\" value=\"Submit\"></form><br><br><!--<button type=\"button\" onclick=\"alert('alerta!')\">Click Me!</button>--><div class=\"container\"> <ul style=\"list-style-type:none\"> <li> <button type=\"button\">Volumen +</button> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp <button type=\"button\">Canal +</button> </li> <br> <li> <button type=\"button\">Volumen - </button> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp <button type=\"button\">Canal -</button> </li> </ul></div> </body></html>"
+  );
   digitalWrite(led, 0);
 }
 
