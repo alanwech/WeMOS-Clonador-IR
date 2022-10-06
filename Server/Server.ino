@@ -2,33 +2,91 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
-
-#include "Device.h"
+#include <ArduinoJson.h>
+#include "Pagina.h"
+#include "controls.h"
 
 #ifndef STASSID
 #define STASSID "Fibertel Thea 2.4 GHz."
 #define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
 #endif
 
+const char* ssid = STASSID;
+const char* password = STAPSK;
 
+IPAddress apIP(192, 168, 0, 110); // Defining a static IP address: local & gateway
+                                // Default IP in AP mode is 192.168.4.1
 ESP8266WebServer server(80);
+
 const int led = 13;
 
-const char *ssid = STASSID;
-const char *password = STAPSK;
-
-Device dev("televisor");
-Key *k;
-
 void handleRoot() {
-  digitalWrite(led, 1);
-  //server.send(200, "text/plain", "hello from esp8266!\r\n");
-  server.send(
-    200,
-    "html",
-    "<!DOCTYPE html><html><meta name=\"viewport\" content=\"width=device-width, initial-scale=2.0\"><body><h1>Clonador de controles remotos IR con WeMOS</h1><form action=\"/action_page.php\"> <label for=\"dispositivo\">Elija el dispositivo a controlar</label> <select name=\"dispositivo\" id=\"dispositivo\"> <option value=\"tv\">Television</option> <option value=\"ac\">Aire Acondicionado</option> <option value=\"proy\">Proyector</option> </select> <br><br> <input type=\"submit\" value=\"Submit\"></form><br><br><!--<button type=\"button\" onclick=\"alert('alerta!')\">Click Me!</button>--><div class=\"container\"> <ul style=\"list-style-type:none\"> <li> <button type=\"button\">Volumen +</button> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp <button type=\"button\">Canal +</button> </li> <br> <li> <button type=\"button\">Volumen - </button> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp <button type=\"button\">Canal -</button> </li> </ul></div> </body></html>"
-  );
-  digitalWrite(led, 0);
+  server.send(200, "text/html", webpage);
+}
+
+void handleCommand(){
+    String postBody = server.arg("plain");
+    Serial.println(postBody);
+ 
+    DynamicJsonDocument doc(512);
+    DeserializationError error = deserializeJson(doc, postBody);
+    if (error) {
+        // if the file didn't open, print an error:
+        Serial.print(F("Error parsing JSON "));
+        Serial.println(error.c_str());
+ 
+        String msg = error.c_str();
+ 
+        server.send(400, F("text/html"),
+                "Error in parsin json body! <br>" + msg);
+ 
+    } else {
+        JsonObject postObj = doc.as<JsonObject>();
+ 
+        Serial.print(F("HTTP Method: "));
+        Serial.println(server.method());
+ 
+        if (server.method() == HTTP_POST) {
+            if (postObj.containsKey("dispositivo") && postObj.containsKey("id")) {
+ 
+                Serial.println(F("done."));
+ 
+                // Here store data or doing operation
+ 
+                const char* disp = postObj["dispositivo"];
+                const function_t function = postObj["id"];
+
+                Serial.println(disp);
+                Serial.println(function);
+                //hacerAlgo(disp,id);
+                 
+                // Create the response
+                // To get the status of the result you can get the http status so
+                // this part can be unusefully
+                DynamicJsonDocument doc(512);
+                doc["status"] = "OK";
+ 
+                Serial.print(F("Stream..."));
+                String buf;
+                serializeJson(doc, buf);
+ 
+                server.send(201, F("application/json"), buf);
+                Serial.print(F("done."));
+ 
+            }else {
+                DynamicJsonDocument doc(512);
+                doc["status"] = "KO";
+                doc["message"] = F("No data found, or incorrect!");
+ 
+                Serial.print(F("Stream..."));
+                String buf;
+                serializeJson(doc, buf);
+ 
+                server.send(400, F("application/json"), buf);
+                Serial.print(F("done."));
+            }
+        }
+    }
 }
 
 void handleNotFound() {
@@ -45,10 +103,10 @@ void handleNotFound() {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
   server.send(404, "text/plain", message);
-  digitalWrite(led, 0);
 }
 
-void initServer() {
+void setup(void) {
+  Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.println("");
@@ -69,41 +127,16 @@ void initServer() {
   }
 
   server.on("/", handleRoot);
-
-/*
-  server.on("/inline", []() {
-    server.send(200, "text/plain", "this works as well");
-  });
-*/
+  
+  server.on(F("/command"), HTTP_POST, handleCommand);
 
   server.onNotFound(handleNotFound);
+
   server.begin();
   Serial.println("HTTP server started");
 }
 
-void setup(void) {
-  pinMode(led, OUTPUT);
-  digitalWrite(led, 0);
-  
-  Serial.begin(115200);
-  
-  //initServer();
-}
-
 void loop(void) {
-  //server.handleClient();
-  //MDNS.update();
-
-  delay(1500);
-  Serial.println("Attempting to acquire key data");
-
-  k = dev.acquireKeyData();
-  if (k) {
-    Serial.print(k->getPropertyById(1));
-  } else {
-    Serial.println("Couldn't read key data");
-  }
-
-  Serial.println();
-
+  server.handleClient();
+  MDNS.update();
 }
