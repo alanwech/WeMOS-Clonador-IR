@@ -53,19 +53,19 @@ const char webpage[] =
           <div id="tele"  style="display:none;">
               <div class="row centrar">
                   <div class="col  centrar" >
-                      <button class="button" style="background-color: #f32c2c" onclick="solicitud('tv','POWER')">ON/OFF</button>
+                      <button class="button" style="background-color: #f32c2c" onclick="solicitud('tv_dormitorio_alan',buttons['POWER'])">ON/OFF</button>
                   </div>
               </div>
               <div class="row centrar">
                   <div class="col centrar">
-                      <button class="button" onclick="solicitud('tv','CHANNEL_UP')">CANAL +</button>
-                      <button class="button" onclick="solicitud('tv','CHANNEL_DOWN')">CANAL -</button>
+                      <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['CHANNEL_UP'])">CANAL +</button>
+                      <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['CHANNEL_DOWN'])">CANAL -</button>
                   </div>
               </div>
               <div class="row centrar">
                   <div class="col centrar">
-                      <button class="button" onclick="solicitud('tv','VOLUME_UP')">VOL +</button>
-                      <button class="button" onclick="solicitud('tv','VOLUME_DOWN')">VOL -</button>
+                      <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['VOLUME_UP'])">VOL +</button>
+                      <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['VOLUME_DOWN'])">VOL -</button>
                   </div>
               </div>
           </div>
@@ -88,6 +88,23 @@ const char webpage[] =
               </div>
           </div>
           <script>
+              const buttons = {
+                'POWER': 0,
+                'VOLUME_UP':1,
+                'VOLUME_DOWN':2,
+                'UP':3,
+                'DOWN':4,
+                'LEFT':5,
+                'RIGHT':6,
+                'ACCEPT':7,
+                'CHANNEL_UP':8,
+                'CHANNEL_DOWN':9,
+                'BACK':10,
+                'CONFIGURATION':11,
+                'HOME':12,
+                'MUTE':13
+              }
+          
               function display(id) {
                   document.getElementById(id).style.display = "block";
                   if (id == 'tele'){
@@ -98,7 +115,9 @@ const char webpage[] =
               }
               function solicitud(disp, id){
                  const http = new window.XMLHttpRequest();
-                 http.open('POST','http://192.168.0.110/command',true);
+                 //http.open('POST','http://192.168.0.110/command',true);
+                 http.open('POST', window.location.href + 'command',true);
+                 console.log('URL: '+ window.location.href)
                  http.setRequestHeader("Content-Type", "application/json");
                  var data = {dispositivo: disp, id: id};
                  console.log(data);

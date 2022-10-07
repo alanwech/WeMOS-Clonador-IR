@@ -3,25 +3,46 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <ArduinoJson.h>
+#include <IRsend.h>
 #include "Pagina.h"
 #include "controls.h"
 
 #ifndef STASSID
-#define STASSID "Fibertel Thea 2.4 GHz."
-#define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
+#define STASSID "WechAP"
+#define STAPSK  "" //COMPLETAR CON PASSWORD FUERA DE GIT
 #endif
+
+#define IR_SEND_LED 12    // GPIO12 = D6
+
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
-IPAddress apIP(192, 168, 0, 110); // Defining a static IP address: local & gateway
+//IPAddress apIP(192, 168, 0, 110); // Defining a static IP address: local & gateway
                                 // Default IP in AP mode is 192.168.4.1
+
+//IPAddress apIP(192, 168, 1, 19);
 ESP8266WebServer server(80);
+
+IRsend irsend(IR_SEND_LED);
+control_t TVDormitorioAlan = { "tv_dormitorio_alan", rc5_functions };
 
 const int led = 13;
 
 void handleRoot() {
   server.send(200, "text/html", webpage);
+}
+
+// Searches for code
+uint64_t getCode(control_t *control, function_t *function) {
+  uint64_t code = 0;
+  for (uint8_t i = 0; i < 5; i++) {
+    if (*function == control->functions[i].function) {
+      code = control->functions[i].code;
+      break;
+    }  
+  }
+  return code;
 }
 
 void handleCommand(){
@@ -53,11 +74,24 @@ void handleCommand(){
  
                 // Here store data or doing operation
  
-                const char* disp = postObj["dispositivo"];
-                const function_t function = postObj["id"];
+                String disp = postObj["dispositivo"];
+                function_t function = postObj["id"];
 
-                Serial.println(disp);
+                //Serial.println(disp);
                 Serial.println(function);
+                
+                if (disp == "tv_dormitorio_alan") {
+                  uint64_t code = getCode(&TVDormitorioAlan, &function);
+                  //uint64_t code = 0xC;
+                  if (code != 0) {
+                    irsend.sendRC5(code, 12);
+                    Serial.print("Sending function id ");
+                    Serial.println(function);
+                  } else {
+                    Serial.println("Code not found for action requested");  
+                  }
+                }
+                
                 //hacerAlgo(disp,id);
                  
                 // Create the response
@@ -134,6 +168,9 @@ void setup(void) {
 
   server.begin();
   Serial.println("HTTP server started");
+
+  irsend.begin();
+  Serial.println("IRsend started");
 }
 
 void loop(void) {

@@ -41,6 +41,7 @@
 #include <IRtext.h>
 #include <IRutils.h>
 
+//#define DECODE_AC
 // ==================== start of TUNEABLE PARAMETERS ====================
 // An IR detector/demodulator is connected to GPIO pin 14
 // e.g. D5 on a NodeMCU board.
@@ -78,14 +79,16 @@ const uint16_t kCaptureBufferSize = 1024;
 // So, choosing the best kTimeout value for your use particular case is
 // quite nuanced. Good luck and happy hunting.
 // NOTE: Don't exceed kMaxTimeoutMs. Typically 130ms.
-#if DECODE_AC
+#ifdef DECODE_AC
 // Some A/C units have gaps in their protocols of ~40ms. e.g. Kelvinator
 // A value this large may swallow repeats of some protocols
-const uint8_t kTimeout = 50;
+  //const uint8_t kTimeout = 50;
 #else   // DECODE_AC
 // Suits most messages, while not swallowing many repeats.
-const uint8_t kTimeout = 15;
+  //const uint8_t kTimeout = 15;
 #endif  // DECODE_AC
+
+const uint8_t kTimeout = 60;
 // Alternatives:
 // const uint8_t kTimeout = 90;
 // Suits messages with big gaps like XMP-1 & some aircon units, but can
