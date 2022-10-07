@@ -2,28 +2,125 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <ArduinoJson.h>
+#include <IRsend.h>
+#include "Pagina.h"
+#include "controls.h"
 
 #ifndef STASSID
-#define STASSID "WechAPLinksys"
+#define STASSID "WechAP"
 #define STAPSK  "" //COMPLETAR CON PASSWORD FUERA DE GIT
 #endif
+
+#define IR_SEND_LED 12    // GPIO12 = D6
+
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
+//IPAddress apIP(192, 168, 0, 110); // Defining a static IP address: local & gateway
+                                // Default IP in AP mode is 192.168.4.1
+
+//IPAddress apIP(192, 168, 1, 19);
 ESP8266WebServer server(80);
+
+IRsend irsend(IR_SEND_LED);
+control_t TVDormitorioAlan = { "tv_dormitorio_alan", rc5_functions };
 
 const int led = 13;
 
 void handleRoot() {
-  digitalWrite(led, 1);
-  //server.send(200, "text/plain", "hello from esp8266!\r\n");
-  server.send(
-    200,
-    "html",
-    "<!DOCTYPE html><html><meta name=\"viewport\" content=\"width=device-width, initial-scale=2.0\"><body><h1>Clonador de controles remotos IR con WeMOS</h1><form action=\"/action_page.php\"> <label for=\"dispositivo\">Elija el dispositivo a controlar</label> <select name=\"dispositivo\" id=\"dispositivo\"> <option value=\"tv\">Television</option> <option value=\"ac\">Aire Acondicionado</option> <option value=\"proy\">Proyector</option> </select> <br><br> <input type=\"submit\" value=\"Submit\"></form><br><br><!--<button type=\"button\" onclick=\"alert('alerta!')\">Click Me!</button>--><div class=\"container\"> <ul style=\"list-style-type:none\"> <li> <button type=\"button\">Volumen +</button> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp <button type=\"button\">Canal +</button> </li> <br> <li> <button type=\"button\">Volumen - </button> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp <button type=\"button\">Canal -</button> </li> </ul></div> </body></html>"
-  );
-  digitalWrite(led, 0);
+  server.send(200, "text/html", webpage);
+}
+
+// Searches for code
+uint64_t getCode(control_t *control, function_t *function) {
+  uint64_t code = 0;
+  for (uint8_t i = 0; i < 5; i++) {
+    if (*function == control->functions[i].function) {
+      code = control->functions[i].code;
+      break;
+    }  
+  }
+  return code;
+}
+
+void handleCommand(){
+    String postBody = server.arg("plain");
+    Serial.println(postBody);
+ 
+    DynamicJsonDocument doc(512);
+    DeserializationError error = deserializeJson(doc, postBody);
+    if (error) {
+        // if the file didn't open, print an error:
+        Serial.print(F("Error parsing JSON "));
+        Serial.println(error.c_str());
+ 
+        String msg = error.c_str();
+ 
+        server.send(400, F("text/html"),
+                "Error in parsin json body! <br>" + msg);
+ 
+    } else {
+        JsonObject postObj = doc.as<JsonObject>();
+ 
+        Serial.print(F("HTTP Method: "));
+        Serial.println(server.method());
+ 
+        if (server.method() == HTTP_POST) {
+            if (postObj.containsKey("dispositivo") && postObj.containsKey("id")) {
+ 
+                Serial.println(F("done."));
+ 
+                // Here store data or doing operation
+ 
+                String disp = postObj["dispositivo"];
+                function_t function = postObj["id"];
+
+                //Serial.println(disp);
+                Serial.println(function);
+                
+                if (disp == "tv_dormitorio_alan") {
+                  uint64_t code = getCode(&TVDormitorioAlan, &function);
+                  //uint64_t code = 0xC;
+                  if (code != 0) {
+                    irsend.sendRC5(code, 12);
+                    Serial.print("Sending function id ");
+                    Serial.println(function);
+                  } else {
+                    Serial.println("Code not found for action requested");  
+                  }
+                }
+                
+                //hacerAlgo(disp,id);
+                 
+                // Create the response
+                // To get the status of the result you can get the http status so
+                // this part can be unusefully
+                DynamicJsonDocument doc(512);
+                doc["status"] = "OK";
+ 
+                Serial.print(F("Stream..."));
+                String buf;
+                serializeJson(doc, buf);
+ 
+                server.send(201, F("application/json"), buf);
+                Serial.print(F("done."));
+ 
+            }else {
+                DynamicJsonDocument doc(512);
+                doc["status"] = "KO";
+                doc["message"] = F("No data found, or incorrect!");
+ 
+                Serial.print(F("Stream..."));
+                String buf;
+                serializeJson(doc, buf);
+ 
+                server.send(400, F("application/json"), buf);
+                Serial.print(F("done."));
+            }
+        }
+    }
 }
 
 void handleNotFound() {
@@ -40,12 +137,9 @@ void handleNotFound() {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
   server.send(404, "text/plain", message);
-  digitalWrite(led, 0);
 }
 
 void setup(void) {
-  pinMode(led, OUTPUT);
-  digitalWrite(led, 0);
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -67,94 +161,16 @@ void setup(void) {
   }
 
   server.on("/", handleRoot);
-
-/*
-  server.on("/inline", []() {
-    server.send(200, "text/plain", "this works as well");
-  });
-*/
-
-  server.on("/gif", []() {
-    static const uint8_t gif[] PROGMEM = {
-      0x47, 0x49, 0x46, 0x38, 0x37, 0x61, 0x10, 0x00, 0x10, 0x00, 0x80, 0x01,
-      0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x2c, 0x00, 0x00, 0x00, 0x00,
-      0x10, 0x00, 0x10, 0x00, 0x00, 0x02, 0x19, 0x8c, 0x8f, 0xa9, 0xcb, 0x9d,
-      0x00, 0x5f, 0x74, 0xb4, 0x56, 0xb0, 0xb0, 0xd2, 0xf2, 0x35, 0x1e, 0x4c,
-      0x0c, 0x24, 0x5a, 0xe6, 0x89, 0xa6, 0x4d, 0x01, 0x00, 0x3b
-    };
-    char gif_colored[sizeof(gif)];
-    memcpy_P(gif_colored, gif, sizeof(gif));
-    // Set the background to a random set of colors
-    gif_colored[16] = millis() % 256;
-    gif_colored[17] = millis() % 256;
-    gif_colored[18] = millis() % 256;
-    server.send(200, "image/gif", gif_colored, sizeof(gif_colored));
-  });
+  
+  server.on(F("/command"), HTTP_POST, handleCommand);
 
   server.onNotFound(handleNotFound);
 
-  /////////////////////////////////////////////////////////
-  // Hook examples
-
-  server.addHook([](const String & method, const String & url, WiFiClient * client, ESP8266WebServer::ContentTypeFunction contentType) {
-    (void)method;      // GET, PUT, ...
-    (void)url;         // example: /root/myfile.html
-    (void)client;      // the webserver tcp client connection
-    (void)contentType; // contentType(".html") => "text/html"
-    Serial.printf("A useless web hook has passed\n");
-    Serial.printf("(this hook is in 0x%08x area (401x=IRAM 402x=FLASH))\n", esp_get_program_counter());
-    return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
-  });
-
-  server.addHook([](const String&, const String & url, WiFiClient*, ESP8266WebServer::ContentTypeFunction) {
-    if (url.startsWith("/fail")) {
-      Serial.printf("An always failing web hook has been triggered\n");
-      return ESP8266WebServer::CLIENT_MUST_STOP;
-    }
-    return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
-  });
-
-  server.addHook([](const String&, const String & url, WiFiClient * client, ESP8266WebServer::ContentTypeFunction) {
-    if (url.startsWith("/dump")) {
-      Serial.printf("The dumper web hook is on the run\n");
-
-      // Here the request is not interpreted, so we cannot for sure
-      // swallow the exact amount matching the full request+content,
-      // hence the tcp connection cannot be handled anymore by the
-      // webserver.
-#ifdef STREAMSEND_API
-      // we are lucky
-      client->sendAll(Serial, 500);
-#else
-      auto last = millis();
-      while ((millis() - last) < 500) {
-        char buf[32];
-        size_t len = client->read((uint8_t*)buf, sizeof(buf));
-        if (len > 0) {
-          Serial.printf("(<%d> chars)", (int)len);
-          Serial.write(buf, len);
-          last = millis();
-        }
-      }
-#endif
-      // Two choices: return MUST STOP and webserver will close it
-      //                       (we already have the example with '/fail' hook)
-      // or                  IS GIVEN and webserver will forget it
-      // trying with IS GIVEN and storing it on a dumb WiFiClient.
-      // check the client connection: it should not immediately be closed
-      // (make another '/dump' one to close the first)
-      Serial.printf("\nTelling server to forget this connection\n");
-      static WiFiClient forgetme = *client; // stop previous one if present and transfer client refcounter
-      return ESP8266WebServer::CLIENT_IS_GIVEN;
-    }
-    return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
-  });
-
-  // Hook examples
-  /////////////////////////////////////////////////////////
-
   server.begin();
   Serial.println("HTTP server started");
+
+  irsend.begin();
+  Serial.println("IRsend started");
 }
 
 void loop(void) {
