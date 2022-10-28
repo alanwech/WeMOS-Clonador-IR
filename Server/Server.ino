@@ -26,6 +26,7 @@ ESP8266WebServer server(80);
 
 IRsend irsend(IR_SEND_LED);
 control_t TVDormitorioAlan = { "tv_dormitorio_alan", rc5_functions };
+control_t TVLucho = { "tv_lucho", nikai_functions };
 
 const int led = 13;
 
@@ -36,7 +37,8 @@ void handleRoot() {
 // Searches for code
 uint64_t getCode(control_t *control, function_t *function) {
   uint64_t code = 0;
-  for (uint8_t i = 0; i < 5; i++) {
+  uint32_t size = sizeof(*(control->functions));
+  for (uint32_t i = 0; i < size; i++) {
     if (*function == control->functions[i].function) {
       code = control->functions[i].code;
       break;
@@ -74,24 +76,32 @@ void handleCommand(){
  
                 // Here store data or doing operation
  
-                String disp = postObj["dispositivo"];
-                function_t function = postObj["id"];
+                const char* disp = postObj["dispositivo"];
+                const function_t function = postObj["id"];
 
-                //Serial.println(disp);
+                Serial.println(disp);
                 Serial.println(function);
+                uint64_t code;
                 
                 if (disp == "tv_dormitorio_alan") {
-                  uint64_t code = getCode(&TVDormitorioAlan, &function);
+                  code = getCode(&TVDormitorioAlan, &function);
                   //uint64_t code = 0xC;
                   if (code != 0) {
                     irsend.sendRC5(code, 12);
-                    Serial.print("Sending function id ");
-                    Serial.println(function);
-                  } else {
-                    Serial.println("Code not found for action requested");  
+                  }
+                } else if (disp == "tv_lucho") {
+                  code = getCode(&TVLucho, &function);
+                  if (code != 0) {
+                    irsend.sendNikai(code, 24);
                   }
                 }
-                
+                if (code != 0) {
+                  Serial.print("Sending function id ");
+                  Serial.println(function);
+                } else {
+                  Serial.println("Code not found for action requested");  
+                }
+
                 //hacerAlgo(disp,id);
                  
                 // Create the response
