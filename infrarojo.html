@@ -28,7 +28,7 @@
               clear: both;
           }
           .centrar {
-              width: 500px;
+              width: 400px;
               padding: 10px;
               margin:auto;
           }
@@ -38,7 +38,7 @@
           }
 
           .columna {
-            flex: 45%;
+            flex: 50%;
           }
   
       </style>
@@ -49,7 +49,7 @@
           <div class="container">
               <div class="row">
                   <div class="col">
-                      <button class="button" onclick="display('tele')">Television</button>
+                      <button class="button" onclick="display('tv_dormitorio_alan')">Television</button>
                   </div>
                   <div class="col">
                       <button class="button" onclick="display('aire')">Aire Acondicionado</button><BR>
@@ -59,51 +59,51 @@
                   </div>
               </div>
           </div><br><hr><br>
-          <div id="tele"  style="display:none;">
+          <div id="tv_dormitorio_alan"  style="display:none;">
               <div class="row centrar">
                   <div class="col  centrar" >
-                      <button class="button" style="background-color: #f32c2c" onclick="solicitud('tv_dormitorio_alan',buttons['POWER'])">ON/OFF</button>
+                      <button class="button" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
                   </div>
               </div>
               <div class="row centrar">
                   <div class="col centrar">
-                      <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['CHANNEL_UP'])">CANAL +</button>
-                      <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['CHANNEL_DOWN'])">CANAL -</button>
+                      <button class="button" onclick="send_command(buttons['CHANNEL_UP'])">CANAL +</button>
+                      <button class="button" onclick="send_command(buttons['CHANNEL_DOWN'])">CANAL -</button>
                   </div>
               </div>
               <div class="row centrar">
                   <div class="col centrar">
-                      <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['VOLUME_UP'])">VOL +</button>
-                      <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['VOLUME_DOWN'])">VOL -</button>
+                      <button class="button" onclick="send_command(buttons['VOLUME_UP'])">VOL +</button>
+                      <button class="button" onclick="send_command(buttons['VOLUME_DOWN'])">VOL -</button>
                   </div>
               </div>
               <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['UP'])">↑</button>
+                    <button class="button" onclick="send_command(buttons['UP'])">↑</button>
                 </div>
             </div>
             <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['LEFT'])">←</button>
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['ACCEPT'])">OK</button>
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['RIGHT'])">→</button>
+                    <button class="button" onclick="send_command(buttons['LEFT'])">←</button>
+                    <button class="button" onclick="send_command(buttons['ACCEPT'])">OK</button>
+                    <button class="button" onclick="send_command(buttons['RIGHT'])">→</button>
                 </div>
             </div>
             <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['DOWN'])">↓</button>
+                    <button class="button" onclick="send_command(buttons['DOWN'])">↓</button>
                 </div>
             </div>
             <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['HOME'])">HOME</button>
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['MUTE'])">MUTE</button>
+                    <button class="button" onclick="send_command(buttons['HOME'])">HOME</button>
+                    <button class="button" onclick="send_command(buttons['MUTE'])">MUTE</button>
                 </div>
             </div>
             <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['BACK'])">BACK</button>
-                    <button class="button" onclick="solicitud('tv_dormitorio_alan',buttons['CONFIGURATION'])">CONF</button>
+                    <button class="button" onclick="send_command(buttons['BACK'])">BACK</button>
+                    <button class="button" onclick="send_command(buttons['CONFIGURATION'])">CONF</button>
                 </div>
             </div>
           </div>
@@ -167,37 +167,37 @@
             </div>
             <div class = "row centrar">
                 <div class="col centrar">
-                    <button class="button" style="background-color: #f32c2c" >ENVIAR ESTADO</button>
+                    <button class="button" style="background-color: #f32c2c" onclick="send_state()">ENVIAR ESTADO</button>
                 </div>
             </div>
           </div>
           <div id="proyector"  style="display:none;">
             <div class="row centrar">
                 <div class="col  centrar" >
-                    <button class="button" style="background-color: #f32c2c" onclick="solicitud('proyector',buttons['POWER'])">ON/OFF</button>
+                    <button class="button" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
                 </div>
             </div>
             <div class="row centrar">
               <div class="col centrar">
-                  <button class="button" onclick="solicitud('proyector',buttons['UP'])">↑</button>
+                  <button class="button" onclick="send_command(buttons['UP'])">↑</button>
               </div>
           </div>
           <div class="row centrar">
               <div class="col centrar">
-                  <button class="button" onclick="solicitud('proyector',buttons['LEFT'])">←</button>
-                  <button class="button" onclick="solicitud('proyector',buttons['ACCEPT'])">OK</button>
-                  <button class="button" onclick="solicitud('proyector',buttons['RIGHT'])">→</button>
+                  <button class="button" onclick="send_command(buttons['LEFT'])">←</button>
+                  <button class="button" onclick="send_command(buttons['ACCEPT'])">OK</button>
+                  <button class="button" onclick="send_command(buttons['RIGHT'])">→</button>
               </div>
           </div>
           <div class="row centrar">
               <div class="col centrar">
-                  <button class="button" onclick="solicitud('proyector',buttons['DOWN'])">↓</button>
+                  <button class="button" onclick="send_command(buttons['DOWN'])">↓</button>
               </div>
           </div>
           <div class="row centrar">
               <div class="col centrar">
-                  <button class="button" onclick="solicitud('proyector',buttons['CONFIGURATION'])">MENU</button>
-                  <button class="button" onclick="solicitud('proyector',buttons['BACK'])">BACK</button>
+                  <button class="button" onclick="send_command(buttons['CONFIGURATION'])">MENU</button>
+                  <button class="button" onclick="send_command(buttons['BACK'])">BACK</button>
               </div>
           </div>
         </div>
@@ -218,8 +218,6 @@
                 'HOME':12,
                 'MUTE':13
               }
-          
-              const devices = ['tele','aire','proyector']
 
               const modos = {
                 0 : 'FRIO',
@@ -235,11 +233,14 @@
                 3 : 'ALTA'
               }
 
+              const devices = ['tv_dormitorio_alan','aire','proyector']
+
               var modo = 0
               var temperatura = 20
               var velocidad = 0
               var estado = false
               var swing = false
+              var device
 
               function init(){
                 document.getElementById("modo").innerHTML = modos[modo]
@@ -248,10 +249,13 @@
                 document.getElementById("vel").innerHTML = velocidades[velocidad]
                 document.getElementById("swing").innerHTML = 'NO'
               }
+
               function display(id) {
                 devices.forEach(element => {
                     if (element == id){
                         document.getElementById(element).style.display = "block"
+                        device = id;
+
                     } else {
                         document.getElementById(element).style.display = "none"
                     }
@@ -303,13 +307,22 @@
                 }
               }
 
-              function solicitud(disp, id){
+              function send_command(id){
                  const http = new window.XMLHttpRequest();
                  //http.open('POST','http://192.168.0.110/command',true);
                  http.open('POST', window.location.href + 'command',true);
-                 console.log('URL: '+ window.location.href)
                  http.setRequestHeader("Content-Type", "application/json");
-                 var data = {dispositivo: disp, id: id};
+                 var data = {dispositivo: device, id: id};
+                 console.log(data);
+                 http.send(JSON.stringify(data));
+              }
+
+              function send_state(){
+                const http = new window.XMLHttpRequest();
+                 //http.open('POST','http://192.168.0.110/state',true);
+                 http.open('POST', window.location.href + 'state',true);
+                 http.setRequestHeader("Content-Type", "application/json");
+                 var data = {dispositivo: device, estado: estado, modo: modo, temperatura: temperatura, velocidad: velocidad, swing: swing};
                  console.log(data);
                  http.send(JSON.stringify(data));
               }
