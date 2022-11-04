@@ -257,6 +257,7 @@ const char webpage[] =
                     if (element == id){
                         document.getElementById(element).style.display = "block"
                         device = id;
+
                     } else {
                         document.getElementById(element).style.display = "none"
                     }

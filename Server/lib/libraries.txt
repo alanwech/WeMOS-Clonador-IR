@@ -1,0 +1,9 @@
+Library             |   Version
+---------------------------------
+ESP8266 board       |   3.0.2
+--ESP8266WiFi       |   1.0
+--ESP8266WebServer  |   1.0
+--ESP8266mDNS       |   1.2
+--EspSoftwareSerial |   6.12.7
+ArduinoJson         |   6.19.4
+IRremoteESP8266     |   2.8.4
