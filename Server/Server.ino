@@ -1,9 +1,9 @@
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
-#include <ArduinoJson.h>
-#include <IRsend.h>
+#include "ESP8266WiFi.h"
+#include "WiFiClient.h"
+#include "ESP8266WebServer.h"
+#include "ESP8266mDNS.h"
+#include "ArduinoJson.h"
+#include "IRsend.h"
 #include "Pagina.h"
 #include "controls.h"
 
@@ -77,7 +77,7 @@ void handleCommand(){
                 // Here store data or doing operation
  
                 const char* disp = postObj["dispositivo"];
-                const function_t function = postObj["id"];
+                function_t function = postObj["id"];
 
                 Serial.println(disp);
                 Serial.println(function);
