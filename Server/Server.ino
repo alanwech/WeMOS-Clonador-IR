@@ -3,13 +3,14 @@
 #include "ESP8266WebServer.h"
 #include "ESP8266mDNS.h"
 #include "ArduinoJson.h"
+#include "IRremoteESP8266.h"
 #include "IRsend.h"
 #include "Pagina.h"
 #include "controls.h"
 
 #ifndef STASSID
-#define STASSID "WechAP"
-#define STAPSK  "" //COMPLETAR CON PASSWORD FUERA DE GIT
+#define STASSID "Fibertel Thea 2.4 GHz."
+#define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
 #endif
 
 #define IR_SEND_LED 12    // GPIO12 = D6
@@ -25,8 +26,9 @@ const char* password = STAPSK;
 ESP8266WebServer server(80);
 
 IRsend irsend(IR_SEND_LED);
-control_t TVDormitorioAlan = { "tv_dormitorio_alan", rc5_functions };
-control_t TVLucho = { "tv_lucho", nikai_functions };
+control_t TVDormitorioAlan = {"tv_dormitorio_alan", RC5, rc5_functions};
+control_t TVLucho = {"tv_lucho", NIKAI, nikai_functions };
+control_t Proyector = {"proyector", EPSON, epson_functions};
 
 const int led = 13;
 
@@ -87,14 +89,23 @@ void handleCommand(){
                   code = getCode(&TVDormitorioAlan, &function);
                   //uint64_t code = 0xC;
                   if (code != 0) {
-                    irsend.sendRC5(code, 12);
+                    irsend.send(RC5, code, 12);
                   }
+
                 } else if (disp == "tv_lucho") {
                   code = getCode(&TVLucho, &function);
                   if (code != 0) {
-                    irsend.sendNikai(code, 24);
+                    irsend.send(NIKAI, code, 24);
+                  }
+                
+                } else if (disp == "proyector") {
+                  code = getCode(&Proyector, &function);
+                  if (code != 0) {
+                    irsend.send(EPSON, code, 64);
                   }
                 }
+
+
                 if (code != 0) {
                   Serial.print("Sending function id ");
                   Serial.println(function);

@@ -24,3 +24,14 @@ key rc5_functions[] = {
   {0x820, CHANNEL_UP},
   {0x821, CHANNEL_DOWN}
 };
+
+key epson_functions[] = {
+  {0xC1AA09F6, POWER},
+  {0xC1AA0DF2, UP},
+  {0xC1AA4DB2, DOWN},
+  {0xC1AACD32, LEFT},
+  {0xC1AA8D72, RIGHT},
+  {0xC1AAA15E, ACCEPT},
+  {0xC1AA59A6, MENU},
+  {0xC1AA21DE, BACK}
+};

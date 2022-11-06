@@ -2,7 +2,9 @@
 #define _CONTROLS_H_DEFINED_
 
 #include <stdint.h>
-//#include <IRremoteESP8266.h>
+#include "IRremoteESP8266.h"
+
+typedef enum decode_type_t decode_type_t;
 
 typedef enum {
     POWER,
@@ -18,7 +20,8 @@ typedef enum {
     BACK,
     CONFIGURATION,
     HOME,
-    MUTE
+    MUTE,
+    MENU
 } function_t;
 
 typedef struct {
@@ -28,12 +31,13 @@ typedef struct {
 
 typedef struct {
     char *name;
-    //decode_type_t protocol;
+    decode_type_t protocol;
     key *functions;
 } control_t;
 
 extern key nikai_functions[];
 extern key rc5_functions[];
+extern key epson_functions[];
 
 extern uint64_t getCode(control_t *control, function_t *function);
 

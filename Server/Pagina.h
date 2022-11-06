@@ -51,7 +51,7 @@ const char webpage[] =
           <div class="container">
               <div class="row">
                   <div class="col">
-                      <button class="button" onclick="display('tv_dormitorio_alan')">Television</button>
+                      <button class="button" onclick="display('tv_lucho')">Television</button>
                   </div>
                   <div class="col">
                       <button class="button" onclick="display('aire')">Aire Acondicionado</button><BR>
@@ -61,7 +61,7 @@ const char webpage[] =
                   </div>
               </div>
           </div><br><hr><br>
-          <div id="tv_dormitorio_alan"  style="display:none;">
+          <div id="tv_lucho"  style="display:none;">
               <div class="row centrar">
                   <div class="col  centrar" >
                       <button class="button" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
@@ -218,7 +218,8 @@ const char webpage[] =
                 'BACK':10,
                 'CONFIGURATION':11,
                 'HOME':12,
-                'MUTE':13
+                'MUTE':13,
+                'MENU':14
               }
 
               const modos = {
@@ -235,7 +236,7 @@ const char webpage[] =
                 3 : 'ALTA'
               }
 
-              const devices = ['tv_dormitorio_alan','aire','proyector']
+              const devices = ['tv_lucho','aire','proyector']
 
               var modo = 0
               var temperatura = 20
