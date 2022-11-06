@@ -198,7 +198,7 @@ const char webpage[] =
           </div>
           <div class="row centrar">
               <div class="col centrar">
-                  <button class="button" onclick="send_command(buttons['CONFIGURATION'])">MENU</button>
+                  <button class="button" onclick="send_command(buttons['MENU'])">MENU</button>
                   <button class="button" onclick="send_command(buttons['BACK'])">BACK</button>
               </div>
           </div>
@@ -218,8 +218,7 @@ const char webpage[] =
                 'BACK':10,
                 'CONFIGURATION':11,
                 'HOME':12,
-                'MUTE':13,
-                'MENU':14
+                'MUTE':13
               }
 
               const modos = {

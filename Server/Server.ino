@@ -9,8 +9,8 @@
 #include "controls.h"
 
 #ifndef STASSID
-#define STASSID "Fibertel Thea 2.4 GHz."
-#define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
+#define STASSID "WifiPlaca"
+#define STAPSK  "123456789" //COMPLETAR CON PASSWORD FUERA DE GIT
 #endif
 
 #define IR_SEND_LED 12    // GPIO12 = D6
@@ -78,7 +78,7 @@ void handleCommand(){
  
                 // Here store data or doing operation
  
-                const char* disp = postObj["dispositivo"];
+                String disp = postObj["dispositivo"];
                 function_t function = postObj["id"];
 
                 Serial.println(disp);
@@ -112,8 +112,6 @@ void handleCommand(){
                 } else {
                   Serial.println("Code not found for action requested");  
                 }
-
-                //hacerAlgo(disp,id);
                  
                 // Create the response
                 // To get the status of the result you can get the http status so
@@ -162,8 +160,11 @@ void handleNotFound() {
 
 void setup(void) {
   Serial.begin(115200);
+
+  /*
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
+  
   Serial.println("");
 
   // Wait for connection
@@ -180,7 +181,15 @@ void setup(void) {
   if (MDNS.begin("esp8266")) {
     Serial.println("MDNS responder started");
   }
-
+  */
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(ssid, password);
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
+  server.begin();
+  Serial.println("Server started");
+  
   server.on("/", handleRoot);
   
   server.on(F("/command"), HTTP_POST, handleCommand);
