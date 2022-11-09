@@ -101,7 +101,7 @@ void handleCommand(){
                 } else if (disp == "proyector") {
                   code = getCode(&Proyector, &function);
                   if (code != 0) {
-                    irsend.send(EPSON, code, 64);
+                    irsend.send(EPSON, code, 32);
                   }
                 }
 
