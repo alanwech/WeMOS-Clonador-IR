@@ -218,7 +218,8 @@ const char webpage[] =
                 'BACK':10,
                 'CONFIGURATION':11,
                 'HOME':12,
-                'MUTE':13
+                'MUTE':13,
+                'MENU':14
               }
 
               const modos = {

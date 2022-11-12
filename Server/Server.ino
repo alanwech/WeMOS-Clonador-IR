@@ -8,13 +8,35 @@
 #include "Pagina.h"
 #include "controls.h"
 
+#include "IRac.h"
+#include "IRtext.h"
+#include "IRutils.h"
+
+#define ACCESS_POINT 0
+
+#if ACCESS_POINT
 #ifndef STASSID
 #define STASSID "WifiPlaca"
 #define STAPSK  "123456789" //COMPLETAR CON PASSWORD FUERA DE GIT
 #endif
+#else
+#ifndef STASSID
+#define STASSID "Fibertel Thea 2.4 GHz."
+#define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
+#endif
+#endif
 
 #define IR_SEND_LED 12    // GPIO12 = D6
+#define IR_RECV_PIN 14    // GPIO14 = D5
 
+const uint32_t kBaudRate = 115200;
+const uint16_t kCaptureBufferSize = 1024;
+const uint8_t kTimeout = 60;
+const uint16_t kMinUnknownSize = 12;
+const uint8_t kTolerancePercentage = kTolerance;  // kTolerance is normally 25%
+
+IRrecv irrecv(IR_RECV_PIN, kCaptureBufferSize, kTimeout, true);
+decode_results results;  // Somewhere to store the results
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
@@ -99,13 +121,45 @@ void handleCommand(){
                   }
                 
                 } else if (disp == "proyector") {
-                  code = getCode(&Proyector, &function);
-                  if (code != 0) {
+                  if (function != MENU) {
+                    code = getCode(&Proyector, &function);
+                    if (code != 0) {
+                      irsend.send(EPSON, code, 32);
+                    }
+                  } else {
+                    Serial.println("Enviando con encodeNEC");
+                    code = irsend.encodeNEC(0x5583, 0x87);
                     irsend.send(EPSON, code, 32);
                   }
                 }
+                
+              
+                if (irrecv.decode(&results)) {
+                  // Display a crude timestamp.
+                  uint32_t now = millis();
+                  Serial.printf(D_STR_TIMESTAMP " : %06u.%03u\n", now / 1000, now % 1000);
+                  
+                  // Check if we got an IR message that was to big for our capture buffer.
+                  if (results.overflow)
+                    Serial.printf(D_WARN_BUFFERFULL "\n", kCaptureBufferSize);
+                  
+                  // Display the library version the message was captured with.
+                  Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
+                  
+                  // Display the tolerance percentage if it has been change from the default.
+                  if (kTolerancePercentage != kTolerance)
+                    Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
+                  
+                  // Display the basic output of what we found.
+                  Serial.print(resultToHumanReadableBasic(&results));
+                  
+                  // Display any extra A/C info if we have it.
+                  String description = IRAcUtils::resultAcToString(&results);
+                  if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
+                  yield();  // Feed the WDT as the text output can take a while to print.
+                }
 
-
+                
                 if (code != 0) {
                   Serial.print("Sending function id ");
                   Serial.println(function);
@@ -161,7 +215,19 @@ void handleNotFound() {
 void setup(void) {
   Serial.begin(115200);
 
-  /*
+
+
+#if ACCESS_POINT
+
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(ssid, password);
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
+  server.begin();
+  Serial.println("Server started");
+
+#else
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   
@@ -181,15 +247,10 @@ void setup(void) {
   if (MDNS.begin("esp8266")) {
     Serial.println("MDNS responder started");
   }
-  */
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password);
-  IPAddress myIP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
-  server.begin();
-  Serial.println("Server started");
-  
+
+#endif
+
+
   server.on("/", handleRoot);
   
   server.on(F("/command"), HTTP_POST, handleCommand);
@@ -201,6 +262,15 @@ void setup(void) {
 
   irsend.begin();
   Serial.println("IRsend started");
+
+  Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", IR_RECV_PIN);
+
+#if DECODE_HASH
+  // Ignore messages with less than minimum on or off pulses.
+  irrecv.setUnknownThreshold(kMinUnknownSize);
+#endif  // DECODE_HASH
+  irrecv.setTolerance(kTolerancePercentage);  // Override the default tolerance.
+  irrecv.enableIRIn();  // Start the receiver
 }
 
 void loop(void) {
