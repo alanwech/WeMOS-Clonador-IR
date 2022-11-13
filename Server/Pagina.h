@@ -177,31 +177,45 @@ const char webpage[] =
             <div class="row centrar">
                 <div class="col  centrar" >
                     <button class="button" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
+                    <button class="button" onclick="send_command(buttons['SOURCE'])">SOURCE</button>
+                    <button class="button" onclick="send_command(buttons['HELP'])">HELP</button>
                 </div>
             </div>
             <div class="row centrar">
-              <div class="col centrar">
-                  <button class="button" onclick="send_command(buttons['UP'])">↑</button>
-              </div>
-          </div>
-          <div class="row centrar">
-              <div class="col centrar">
-                  <button class="button" onclick="send_command(buttons['LEFT'])">←</button>
-                  <button class="button" onclick="send_command(buttons['ACCEPT'])">OK</button>
-                  <button class="button" onclick="send_command(buttons['RIGHT'])">→</button>
-              </div>
-          </div>
-          <div class="row centrar">
-              <div class="col centrar">
-                  <button class="button" onclick="send_command(buttons['DOWN'])">↓</button>
-              </div>
-          </div>
-          <div class="row centrar">
-              <div class="col centrar">
-                  <button class="button" onclick="send_command(buttons['MENU'])">MENU</button>
-                  <button class="button" onclick="send_command(buttons['BACK'])">BACK</button>
-              </div>
-          </div>
+                <div class="col centrar">
+                    <button class="button" onclick="send_command(buttons['MENU'])">MENU</button>
+                    <button class="button" onclick="send_command(buttons['UP'])">↑</button>
+                    <button class="button" onclick="send_command(buttons['BACK'])">BACK</button>
+                </div>
+            </div>
+            <div class="row centrar">
+                <div class="col centrar">
+                    <button class="button" onclick="send_command(buttons['LEFT'])">←</button>
+                    <button class="button" onclick="send_command(buttons['ACCEPT'])">OK</button>
+                    <button class="button" onclick="send_command(buttons['RIGHT'])">→</button>
+                </div>
+            </div>
+            <div class="row centrar">
+                <div class="col centrar">
+                    <button class="button" onclick="send_command(buttons['AUTO'])">AUTO</button>
+                    <button class="button" onclick="send_command(buttons['DOWN'])">↓</button>
+                    <button class="button" onclick="send_command(buttons['VOLUME'])">VOLUME</button>
+                </div>
+            </div>
+            <div class="row centrar">
+                <div class="col centrar">
+                    <button class="button" onclick="send_command(buttons['PAGE_UP'])">PAGE+</button>
+                    <button class="button" onclick="send_command(buttons['ZOOM_IN'])">ZOOM+</button>
+                    <button class="button" onclick="send_command(buttons['FREEZE'])">FREEZE</button>
+                </div>
+            </div>
+            <div class="row centrar">
+                <div class="col centrar">
+                    <button class="button" onclick="send_command(buttons['PAGE_DOWN'])">PAGE-</button>
+                    <button class="button" onclick="send_command(buttons['ZOOM_OUT'])">ZOOM-</button>
+                    <button class="button" onclick="send_command(buttons['MUTE'])">MUTE</button>
+                </div>
+            </div>
         </div>
           <script>
               const buttons = {
@@ -219,7 +233,16 @@ const char webpage[] =
                 'CONFIGURATION':11,
                 'HOME':12,
                 'MUTE':13,
-                'MENU':14
+                'MENU':14,
+                'SOURCE':15,
+                'HELP':16,
+                'PAGE_UP':17,
+                'PAGE_DOWN':18,
+                'ZOOM_IN':19,
+                'ZOOM_OUT':20,
+                'FREEZE':21,
+                'AUTO':22,
+                'VOLUME:':23
               }
 
               const modos = {

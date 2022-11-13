@@ -12,31 +12,35 @@
 #include "IRtext.h"
 #include "IRutils.h"
 
-#define ACCESS_POINT 0
+#define ACCESS_POINT 1
+#define DEBUG_TRAMAS 1
 
+#ifndef STASSID
 #if ACCESS_POINT
-#ifndef STASSID
+
 #define STASSID "WifiPlaca"
-#define STAPSK  "123456789" //COMPLETAR CON PASSWORD FUERA DE GIT
-#endif
+#define STAPSK  "123456789"
+
 #else
-#ifndef STASSID
-#define STASSID "Fibertel Thea 2.4 GHz."
-#define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
+
+#define STASSID ""
+#define STAPSK  "" //COMPLETAR CON PASSWORD FUERA DE GIT
+
 #endif
 #endif
 
 #define IR_SEND_LED 12    // GPIO12 = D6
 #define IR_RECV_PIN 14    // GPIO14 = D5
 
+#if DEBUG_TRAMAS
 const uint32_t kBaudRate = 115200;
 const uint16_t kCaptureBufferSize = 1024;
 const uint8_t kTimeout = 60;
 const uint16_t kMinUnknownSize = 12;
 const uint8_t kTolerancePercentage = kTolerance;  // kTolerance is normally 25%
-
 IRrecv irrecv(IR_RECV_PIN, kCaptureBufferSize, kTimeout, true);
 decode_results results;  // Somewhere to store the results
+#endif
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
@@ -121,19 +125,13 @@ void handleCommand(){
                   }
                 
                 } else if (disp == "proyector") {
-                  if (function != MENU) {
                     code = getCode(&Proyector, &function);
                     if (code != 0) {
                       irsend.send(EPSON, code, 32);
                     }
-                  } else {
-                    Serial.println("Enviando con encodeNEC");
-                    code = irsend.encodeNEC(0x5583, 0x87);
-                    irsend.send(EPSON, code, 32);
-                  }
                 }
                 
-              
+#if DEBUG_TRAMAS
                 if (irrecv.decode(&results)) {
                   // Display a crude timestamp.
                   uint32_t now = millis();
@@ -158,7 +156,7 @@ void handleCommand(){
                   if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
                   yield();  // Feed the WDT as the text output can take a while to print.
                 }
-
+#endif
                 
                 if (code != 0) {
                   Serial.print("Sending function id ");

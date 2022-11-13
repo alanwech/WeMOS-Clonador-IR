@@ -21,7 +21,16 @@ typedef enum {
     CONFIGURATION,
     HOME,
     MUTE,
-    MENU
+    MENU,
+    SOURCE,
+    HELP,
+    PAGE_UP,
+    PAGE_DOWN,
+    ZOOM_IN,
+    ZOOM_OUT,
+    FREEZE,
+    AUTO,       // proyector
+    VOLUME      // proyector
 } function_t;
 
 typedef struct {
