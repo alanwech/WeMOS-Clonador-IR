@@ -19,34 +19,32 @@ class Control {
         uint32_t nbits;
 };
 
-/*
+
 class AC_Control : public Control{
     public:
         AC_Control(String name, decode_type_t protocol, key *functions);
         ~AC_Control() {}
-        bool sendEstado();
         bool readButton(function_t function);
     private:
         const uint8_t maxTemp = 30, minTemp = 17; // Celsius
+
+        //// MAPEOS ////
+        const uint32_t kCoolixSleep  = 0b101100101110000000000011;  // 0xB2E003
+        const uint32_t kCoolixTurbo  = 0b101101011111010110100010;  // 0xB5F5A2
+        const uint32_t kCoolixLight  = 0b101101011111010110100101;  // 0xB5F5A5
+        const uint32_t kCoolixClean  = 0b101101011111010110101010;  // 0xB5F5AA
+        const uint32_t kCoolixPower  = 0b101100100111101111100000;  // 0xB27BE0
+
         bool power, turbo, sleep, led;
         uint8_t temp, fan, mode;
 
-        typedef {
-            uint8_t fixed : 5;
-            uint8_t unk1 : 3;
-            uint8_t fan : 3;
-            uint8_t sensor : 5;
-            uint8_t temp : 4;
-            uint8_t mode : 2;
-            uint8_t unk2 : 2;
-        } struct state_t;
-
-        bool sendPower();
+        bool send(uint32_t code, IRsend &irsend);
+        bool AC_Control::sendState(IRsend &irsend)
+        /*bool sendPower();
         bool sendTurbo();
         bool sendSleep();
-        bool sendLight();
+        bool sendLight();*/
         state_t generateState();
 }
-*/
 
 #endif

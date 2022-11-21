@@ -30,13 +30,31 @@ typedef enum {
     ZOOM_OUT,
     FREEZE,
     AUTO,       // proyector
-    VOLUME      // proyector
+    VOLUME,      // proyector
+    TEMP_UP,
+    TEMP_DOWN,
+    MODE,
+    FAN,
+    TURBO,
+    SLEEP,
+    LED,
+    SWING
 } function_t;
 
 typedef struct {
     uint64_t code;
     function_t function;
 } key;
+
+typedef struct state_t {
+    uint8_t fixed : 5;
+    uint8_t unk1 : 3;
+    uint8_t fan : 3;
+    uint8_t sensor : 5;
+    uint8_t temp : 4;
+    uint8_t mode : 2;
+    uint8_t unk2 : 2;
+} state_t;
 
 extern key nikai_functions[];
 extern key rc5_functions[];
