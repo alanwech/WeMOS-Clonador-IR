@@ -1,4 +1,4 @@
-#include "controls.h"
+#include "protocols.h"
 
 key nikai_functions[] = {
   {0xD5F2A, POWER},

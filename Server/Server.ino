@@ -6,13 +6,14 @@
 #include "IRremoteESP8266.h"
 #include "IRsend.h"
 #include "Pagina.h"
-#include "controls.h"
+#include "control.h"
+#include "protocols.h"
 
 #include "IRac.h"
 #include "IRtext.h"
 #include "IRutils.h"
 
-#define ACCESS_POINT 1
+#define ACCESS_POINT 0
 #define DEBUG_TRAMAS 1
 
 #ifndef STASSID
@@ -23,8 +24,8 @@
 
 #else
 
-#define STASSID ""
-#define STAPSK  "" //COMPLETAR CON PASSWORD FUERA DE GIT
+#define STASSID "Entrerios.net 8457"
+#define STAPSK  "66977989" //COMPLETAR CON PASSWORD FUERA DE GIT
 
 #endif
 #endif
@@ -52,9 +53,10 @@ const char* password = STAPSK;
 ESP8266WebServer server(80);
 
 IRsend irsend(IR_SEND_LED);
-control_t TVDormitorioAlan = {"tv_dormitorio_alan", RC5, rc5_functions};
-control_t TVLucho = {"tv_lucho", NIKAI, nikai_functions };
-control_t Proyector = {"proyector", EPSON, epson_functions};
+
+Control TVDormitorioAlan("tv_dormitorio_alan", RC5, rc5_functions);
+Control TVLucho("tv_lucho", NIKAI, nikai_functions);
+Control Proyector("proyector", EPSON, epson_functions);
 
 const int led = 13;
 
@@ -62,18 +64,6 @@ void handleRoot() {
   server.send(200, "text/html", webpage);
 }
 
-// Searches for code
-uint64_t getCode(control_t *control, function_t *function) {
-  uint64_t code = 0;
-  uint32_t size = sizeof(*(control->functions));
-  for (uint32_t i = 0; i < size; i++) {
-    if (*function == control->functions[i].function) {
-      code = control->functions[i].code;
-      break;
-    }  
-  }
-  return code;
-}
 
 void handleCommand(){
     String postBody = server.arg("plain");
@@ -112,23 +102,25 @@ void handleCommand(){
                 uint64_t code;
                 
                 if (disp == "tv_dormitorio_alan") {
-                  code = getCode(&TVDormitorioAlan, &function);
-                  //uint64_t code = 0xC;
-                  if (code != 0) {
-                    irsend.send(RC5, code, 12);
+                  if (TVDormitorioAlan.send(function, irsend)) {
+                    Serial.println("Sent successfully."); 
+                  } else {
+                    Serial.println("Couldn't send");
                   }
 
                 } else if (disp == "tv_lucho") {
-                  code = getCode(&TVLucho, &function);
-                  if (code != 0) {
-                    irsend.send(NIKAI, code, 24);
+                  if (TVLucho.send(function, irsend)) {
+                    Serial.println("Sent successfully."); 
+                  } else {
+                    Serial.println("Couldn't send");
                   }
                 
                 } else if (disp == "proyector") {
-                    code = getCode(&Proyector, &function);
-                    if (code != 0) {
-                      irsend.send(EPSON, code, 32);
-                    }
+                  if (Proyector.send(function, irsend)) {
+                    Serial.println("Sent successfully."); 
+                  } else {
+                    Serial.println("Couldn't send");
+                  }
                 }
                 
 #if DEBUG_TRAMAS
@@ -157,13 +149,6 @@ void handleCommand(){
                   yield();  // Feed the WDT as the text output can take a while to print.
                 }
 #endif
-                
-                if (code != 0) {
-                  Serial.print("Sending function id ");
-                  Serial.println(function);
-                } else {
-                  Serial.println("Code not found for action requested");  
-                }
                  
                 // Create the response
                 // To get the status of the result you can get the http status so
