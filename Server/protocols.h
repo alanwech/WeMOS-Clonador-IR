@@ -46,6 +46,12 @@ typedef struct {
     function_t function;
 } key;
 
+typedef struct protocol_t {
+  decode_type_t name;
+  key *functions;
+  uint32_t nbits;
+} protocol_t;
+
 typedef struct state_t {
     uint8_t fixed : 5;
     uint8_t unk1 : 3;
@@ -59,5 +65,10 @@ typedef struct state_t {
 extern key nikai_functions[];
 extern key rc5_functions[];
 extern key epson_functions[];
+
+extern protocol_t Nikai_Protocol;
+extern protocol_t RC5_Protocol;
+extern protocol_t Epson_Protocol;
+extern protocol_t Coolix_Protocol;
 
 #endif

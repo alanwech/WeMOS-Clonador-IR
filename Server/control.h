@@ -7,44 +7,47 @@
 
 class Control {
     public:
-        Control(String name, decode_type_t protocol, key *functions);
+        Control(String name, protocol_t protocol);
         ~Control() {}
-        uint32_t getCode(function_t function);
         bool send(function_t function, IRsend &irsend);
-        decode_type_t getProtocol();
+        decode_type_t getProtocol() { return m_protocol.name; }
+        uint32_t getNBits() { return m_protocol.nbits; }
     private:
         String m_name;
-        const decode_type_t m_protocol; 
-        key *m_functions;
-        uint32_t nbits;
+        const protocol_t m_protocol; 
+
+        uint64_t getCode(function_t function);
 };
 
 
 class AC_Control : public Control{
     public:
-        AC_Control(String name, decode_type_t protocol, key *functions);
+        AC_Control(String name, protocol_t protocol);
         ~AC_Control() {}
-        bool readButton(function_t function);
+        bool send(function_t function, IRsend &irsend);
     private:
-        const uint8_t maxTemp = 30, minTemp = 17; // Celsius
+        static const uint8_t maxTemp = 30, minTemp = 17; // Celsius
 
         //// MAPEOS ////
-        const uint32_t kCoolixSleep  = 0b101100101110000000000011;  // 0xB2E003
-        const uint32_t kCoolixTurbo  = 0b101101011111010110100010;  // 0xB5F5A2
-        const uint32_t kCoolixLight  = 0b101101011111010110100101;  // 0xB5F5A5
-        const uint32_t kCoolixClean  = 0b101101011111010110101010;  // 0xB5F5AA
-        const uint32_t kCoolixPower  = 0b101100100111101111100000;  // 0xB27BE0
+        static const uint32_t kCoolixSleep  = 0b101100101110000000000011;  // 0xB2E003
+        static const uint32_t kCoolixTurbo  = 0b101101011111010110100010;  // 0xB5F5A2
+        static const uint32_t kCoolixLight  = 0b101101011111010110100101;  // 0xB5F5A5
+        static const uint32_t kCoolixClean  = 0b101101011111010110101010;  // 0xB5F5AA
+        static const uint32_t kCoolixPower  = 0b101100100111101111100000;  // 0xB27BE0
+        static const uint32_t kCoolixSwing  = 0xB26BE0;
 
-        bool power, turbo, sleep, led;
+        static uint8_t kCoolixTempMap[14];
+        static uint8_t kCoolixFanMap[4];
+        static uint8_t kCoolixFanMapCool[4];
+        static uint8_t kCoolixModeMap[4];
+
+        bool power, turbo, sleep, led, swing;
         uint8_t temp, fan, mode;
+        state_t m_state;
 
-        bool send(uint32_t code, IRsend &irsend);
-        bool AC_Control::sendState(IRsend &irsend)
-        /*bool sendPower();
-        bool sendTurbo();
-        bool sendSleep();
-        bool sendLight();*/
+        //bool sendState(uint32_t code, IRsend &irsend);
+        uint32_t convertState();
         state_t generateState();
-}
+};
 
 #endif

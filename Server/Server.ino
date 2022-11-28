@@ -24,8 +24,8 @@
 
 #else
 
-#define STASSID "Entrerios.net 8457"
-#define STAPSK  "66977989" //COMPLETAR CON PASSWORD FUERA DE GIT
+#define STASSID "Fibertel Thea 2.4 GHz."
+#define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
 
 #endif
 #endif
@@ -54,10 +54,12 @@ ESP8266WebServer server(80);
 
 IRsend irsend(IR_SEND_LED);
 
-Control TVDormitorioAlan("tv_dormitorio_alan", RC5, rc5_functions);
-Control TVLucho("tv_lucho", NIKAI, nikai_functions);
-Control Proyector("proyector", EPSON, epson_functions);
+Control TVDormitorioAlan("tv_dormitorio_alan", RC5_Protocol);
+Control TVLucho("tv_lucho", Nikai_Protocol);
+Control Proyector("proyector", Epson_Protocol);
+AC_Control Aire("aire", Coolix_Protocol);
 
+bool power = false;
 const int led = 13;
 
 void handleRoot() {
@@ -100,6 +102,7 @@ void handleCommand(){
                 Serial.println(disp);
                 Serial.println(function);
                 uint64_t code;
+
                 
                 if (disp == "tv_dormitorio_alan") {
                   if (TVDormitorioAlan.send(function, irsend)) {
@@ -121,7 +124,15 @@ void handleCommand(){
                   } else {
                     Serial.println("Couldn't send");
                   }
+
+                } else if (disp == "aire") {
+                  if (Aire.send(function, irsend)) {
+                    Serial.println("Sent successfully.");
+                  } else {
+                    Serial.println("Couldn't send");
+                  }
                 }
+
                 
 #if DEBUG_TRAMAS
                 if (irrecv.decode(&results)) {

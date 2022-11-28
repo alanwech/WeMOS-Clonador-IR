@@ -1,19 +1,18 @@
 #include "control.h"
 #define IR_SEND_LED 12    // GPIO12 = D6
 
-Control::Control(String name, decode_type_t protocol, key *functions)
-        : m_name{name}, m_protocol{protocol}, m_functions{functions}  {
+Control::Control(String name, protocol_t protocol) : m_name{name}, m_protocol{protocol} {
     Serial.println("Succesfully created Class Control");
 }
 
-uint32_t Control::getCode(function_t function) {
+uint64_t Control::getCode(function_t function) {
     // EN DESARROLLO devuelve el codigo del control remoto mapeado a su protocolo
     // probablemente un switch case?
     uint64_t code = 0;
-    uint32_t size = sizeof(*(m_functions));
+    uint32_t size = sizeof(*(m_protocol.functions));
     for (uint32_t i = 0; i < size; i++) {
-        if (function == m_functions[i].function) {
-            code = m_functions[i].code;
+        if (function == m_protocol.functions[i].function) {
+            code = m_protocol.functions[i].code;
             break;
         }  
     }
@@ -24,82 +23,108 @@ uint32_t Control::getCode(function_t function) {
 bool Control::send(function_t function, IRsend &irsend) {
     uint64_t code = getCode(function);
     if (code != 0) {
-      return irsend.send(m_protocol, getCode(function), nbits); // lleva parametros nbits y repeat?
+      return irsend.send(m_protocol.name, code, m_protocol.nbits); // lleva parametros nbits y repeat?
     } else {
       return false;
     }
 }        
 
-decode_type_t Control::getProtocol() {
-    return m_protocol;
+
+AC_Control::AC_Control(String name, protocol_t protocol) : Control(name, protocol) {
+  power = false;
+  turbo = false;
+  sleep = false;
+  led = false;
+  swing = false;
+  temp = 25;
+  fan = 0;
+  mode = 0;
+  m_state = generateState();
+  Serial.println("AC_Control class created");
 }
-
-
-
-
-AC_Control::AC_Control(String name, decode_type_t protocol, key *functions) : Control(name, protocol, functions) {
-    Serial.println("AC_Control class created");
-}
-
-bool AC_Control::sendState(IRsend &irsend) {
-    state_t estado = generateState();
-    Serial.print(estado); // VER SI NO ROMPE
-    return irsend.send(m_protocol, estado, nbits); // lleva parametros nbits y repeat?
-}
-
 
 bool AC_Control::send(function_t function, IRsend &irsend) {
     // Sobreescribe Control::send, de esta forma generalizamos todos los controles
     bool ret = true;
     Serial.print("Executing function: ");
     Serial.print(function);
+
     switch (function) {
         case POWER:
             power = !power;
             if (power) {
-                ret = sendEstado();     // para prender tiene que generar el estado
+                // para prender tiene que generar el estado
+                ret = irsend.send(getProtocol(), convertState(), getNBits());
             } else {
-                ret = send(kCoolixPower, irsend);   // para apagar manda siempre el mismo estado
+                // para apagar manda siempre el mismo estado
+                ret = irsend.send(getProtocol(), kCoolixPower, getNBits());
             }
             break;
         case TEMP_UP:
             (temp < maxTemp) ? temp++ : ret = false;
-            ret = sendEstado();
+            ret = irsend.send(getProtocol(), convertState(), getNBits());
             break;
         case TEMP_DOWN:
             (temp > minTemp) ? temp-- : ret = false;
-            ret = sendEstado();
+            ret = irsend.send(getProtocol(), convertState(), getNBits());
             break;
         case MODE:
             mode = (mode + 1) % sizeof(kCoolixModeMap)/sizeof(uint8_t);
-            ret = sendEstado();
+            ret = irsend.send(getProtocol(), convertState(), getNBits());
             break;
         case FAN:
             fan = (fan + 1) % sizeof(kCoolixFanMap)/sizeof(uint8_t); 
-            ret = sendEstado();
+            ret = irsend.send(getProtocol(), convertState(), getNBits());
             break;
         case TURBO:
             turbo = !turbo;
-            ret = send(kCoolixTurbo, irsend);
+            ret = irsend.send(getProtocol(), kCoolixTurbo, getNBits());
             break;
         case SLEEP:
             sleep = !sleep;
-            ret = send(kCoolixSleep, irsend);
+            ret = irsend.send(getProtocol(), kCoolixSleep, getNBits());
             break;
         case LED:
             led = !led;
-            ret = send(kCoolixLight, irsend);
+            ret = irsend.send(getProtocol(), kCoolixLight, getNBits());
             break;
         case SWING:
-            // pendiente implementacion
+            swing = !swing;
+            ret = irsend.send(getProtocol(), kCoolixSwing, getNBits());
             break;
     }
     
     return ret;
 }
+/*
+bool AC_Control::sendState(uint32_t code, IRsend &irsend) {
+    return irsend.send(m_protocol, code, nbits);
+}
+*/
+uint32_t AC_Control::convertState() {
+    return (m_state.fixed << 19) | (m_state.unk1 << 16) | (m_state.fan << 13) | (m_state.sensor << 8) | (m_state.temp << 4) | (m_state.mode << 2) | (m_state.unk2);
+}
+
+state_t AC_Control::generateState() {
+    // idealmente es un union o bitfield?
+    //uint32_t state = 0b10110 << 26;
+    //state |= 0b010 << 
+    state_t newState;
+    newState.fixed = 0b10110;
+    newState.unk1 = 0b010;
+    if (mode == 0) newState.fan = kCoolixFanMapCool[fan];
+    else newState.fan = kCoolixFanMap[fan];
+    newState.sensor = 0b1111;
+    newState.temp = kCoolixTempMap[temp-17];
+    newState.mode = kCoolixModeMap[mode];
+    newState.unk2 = 0b00;
+
+    return newState;
+}
 
 
-const uint8_t kCoolixTempMap[] = {
+
+uint8_t AC_Control::kCoolixTempMap[14] = {
     0b0000,  // 17C
     0b0001,  // 18C
     0b0011,  // 19C
@@ -116,16 +141,23 @@ const uint8_t kCoolixTempMap[] = {
     0b1011   // 30C
 };
 
-const uint8_t kCoolixFanMap[] = {
-    0b000,  // Auto se activa en modo auto
-    //0b101,  // Auto alt se activa en modo cool
+uint8_t AC_Control::kCoolixFanMapCool[4] = {
+    0b101,  // Auto alt se activa en modo cool
     0b100,  // Min
     0b010,  // Med
     0b001  // Max
     //0b111  // Fixed?
 };
 
-const uint8_t kCoolixModeMap[] = {
+uint8_t AC_Control::kCoolixFanMap[4] = {
+    0b000,  // Auto
+    0b100,  // Min
+    0b010,  // Med
+    0b001  // Max
+    //0b111  // Fixed?
+};
+
+uint8_t AC_Control::kCoolixModeMap[4] = {
     0b00,  // Cool
     0b01,  // Dry
     0b10,  // Auto
@@ -140,25 +172,4 @@ const uint8_t kCoolingSwingMap[] {
     mid
     high
 }; 
-*/
-
-bool AC_Control::send(uint32_t code, IRsend &irsend) {
-    return irsend.send(m_protocol, code, nbits);
-}
-
-state_t generateState() {
-    // idealmente es un union o bitfield?
-    //uint32_t state = 0b10110 << 26;
-    //state |= 0b010 << 
-    state_t newState;
-    newState.fixed = 0b10110;
-    newState.unk1 = 0b010;
-    newState.fan = kCoolixFanMap[fan];
-    newState.sensor = 0b1111;
-    newState.temp = kCoolixTempMap[temp-17];
-    newState.mode = kCoolixModeMap[mode];
-    newState.unk2 = 0b00;
-
-    return newState;
-}
 */

@@ -1,5 +1,7 @@
 #include "protocols.h"
 
+protocol_t Nikai_Protocol = {NIKAI, nikai_functions, 24};
+
 key nikai_functions[] = {
   {0xD5F2A, POWER},
   {0xD0F2F, VOLUME_UP},
@@ -17,6 +19,8 @@ key nikai_functions[] = {
   {0xC0F3F, MUTE}
 };
 
+protocol_t RC5_Protocol = {RC5, rc5_functions, 16};
+
 key rc5_functions[] = {
   {0x80C, POWER},
   {0x810, VOLUME_UP},
@@ -24,6 +28,8 @@ key rc5_functions[] = {
   {0x820, CHANNEL_UP},
   {0x821, CHANNEL_DOWN}
 };
+
+protocol_t Epson_Protocol = {EPSON, epson_functions, 32};
 
 key epson_functions[] = {
   {0xC1AA09F6, POWER},
@@ -45,3 +51,5 @@ key epson_functions[] = {
   {0xC1AA49B6, FREEZE},
   {0xC1AAC936, MUTE}
 };
+
+protocol_t Coolix_Protocol = {COOLIX, 0, 24};

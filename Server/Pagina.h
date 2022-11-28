@@ -81,19 +81,19 @@ const char webpage[] =
               </div>
               <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="send_command(buttons['UP'])">↑</button>
+                    <button class="button" onclick="send_command(buttons['UP'])">^</button>
                 </div>
             </div>
             <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="send_command(buttons['LEFT'])">←</button>
+                    <button class="button" onclick="send_command(buttons['LEFT'])"><</button>
                     <button class="button" onclick="send_command(buttons['ACCEPT'])">OK</button>
-                    <button class="button" onclick="send_command(buttons['RIGHT'])">→</button>
+                    <button class="button" onclick="send_command(buttons['RIGHT'])">></button>
                 </div>
             </div>
             <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="send_command(buttons['DOWN'])">↓</button>
+                    <button class="button" onclick="send_command(buttons['DOWN'])">v</button>
                 </div>
             </div>
             <div class="row centrar">
@@ -114,7 +114,7 @@ const char webpage[] =
                 <div class="columna">
                     <div class="row centrar">
                         <div class="col  centrar" >
-                            <button class="button" onclick="aire_power()">ON/OFF</button>
+                            <button class="button" onclick="send_command(buttons['POWER'])">ON/OFF</button>
                         </div>
                     </div>
                     <div class="row centrar">
@@ -135,7 +135,7 @@ const char webpage[] =
                     </div>
                     <div class="row centrar">
                         <div class="col centrar">
-                            <button class="button" onclick="aire_swing()">SWING</button>
+                            <button class="button" onclick="send_command(buttons['SLEEP'])">SWING</button>
                         </div>
                     </div>
                 </div>
@@ -152,7 +152,7 @@ const char webpage[] =
                     </div>
                     <div class="row centrar">
                         <div class="col centrar">
-                            <h2>Temperatura: <span id="temp"></span>°C</h2>
+                            <h2>Temperatura: <span id="temp"></span> C</h2>
                         </div>
                     </div>
                     <div class="row centrar">
@@ -184,21 +184,21 @@ const char webpage[] =
             <div class="row centrar">
                 <div class="col centrar">
                     <button class="button" onclick="send_command(buttons['MENU'])">MENU</button>
-                    <button class="button" onclick="send_command(buttons['UP'])">↑</button>
+                    <button class="button" onclick="send_command(buttons['UP'])">^</button>
                     <button class="button" onclick="send_command(buttons['BACK'])">BACK</button>
                 </div>
             </div>
             <div class="row centrar">
                 <div class="col centrar">
-                    <button class="button" onclick="send_command(buttons['LEFT'])">←</button>
+                    <button class="button" onclick="send_command(buttons['LEFT'])"><</button>
                     <button class="button" onclick="send_command(buttons['ACCEPT'])">OK</button>
-                    <button class="button" onclick="send_command(buttons['RIGHT'])">→</button>
+                    <button class="button" onclick="send_command(buttons['RIGHT'])">></button>
                 </div>
             </div>
             <div class="row centrar">
                 <div class="col centrar">
                     <button class="button" onclick="send_command(buttons['AUTO'])">AUTO</button>
-                    <button class="button" onclick="send_command(buttons['DOWN'])">↓</button>
+                    <button class="button" onclick="send_command(buttons['DOWN'])">v</button>
                     <button class="button" onclick="send_command(buttons['VOLUME'])">VOLUME</button>
                 </div>
             </div>
@@ -242,7 +242,15 @@ const char webpage[] =
                 'ZOOM_OUT':20,
                 'FREEZE':21,
                 'AUTO':22,
-                'VOLUME:':23
+                'VOLUME':23,
+                'TEMP_UP':24,
+                'TEMP_DOWN':25,
+                'MODE':26,
+                'FAN':27,
+                'TURBO':28,
+                'SLEEP':29,
+                'LED':30,
+                'SWING':31
               }
 
               const modos = {
