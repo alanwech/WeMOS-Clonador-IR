@@ -122,7 +122,20 @@ state_t AC_Control::generateState() {
     return newState;
 }
 
+DynamicJsonDocument AC_Control::toJSON(){
+    DynamicJsonDocument doc(512);
 
+    doc["power"] = power;
+    doc["turbo"] = turbo;
+    doc["sleep"] = sleep;
+    doc["led"] = led;
+    doc["swing"] = swing;
+    doc["temp"] = temp;
+    doc["fan"] = fan;
+    doc["mode"] = mode;
+
+    return doc;
+}
 
 uint8_t AC_Control::kCoolixTempMap[14] = {
     0b0000,  // 17C

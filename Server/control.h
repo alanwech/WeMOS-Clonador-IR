@@ -2,6 +2,7 @@
 #define _CONTROL_H_DEFINED_
 
 #include <Arduino.h> // para usar el Serial.print()
+#include <ArduinoJson.h> // para parsear a JSON
 #include <IRsend.h>
 #include "protocols.h"
 
@@ -25,6 +26,7 @@ class AC_Control : public Control{
         AC_Control(String name, protocol_t protocol);
         ~AC_Control() {}
         bool send(function_t function, IRsend &irsend);
+        DynamicJsonDocument toJSON();
     private:
         static const uint8_t maxTemp = 30, minTemp = 17; // Celsius
 

@@ -66,7 +66,6 @@ void handleRoot() {
   server.send(200, "text/html", webpage);
 }
 
-
 void handleCommand(){
     String postBody = server.arg("plain");
     Serial.println(postBody);
@@ -190,6 +189,17 @@ void handleCommand(){
     }
 }
 
+void handleStatus(){
+  DynamicJsonDocument doc = Aire.toJSON();
+
+  Serial.print(F("Sending Status."));
+  String buf;
+  serializeJson(doc, buf);
+
+  server.send(200, F("application/json"), buf);
+  Serial.print(F("done."));
+}
+
 void handleNotFound() {
   digitalWrite(led, 1);
   String message = "File Not Found\n\n";
@@ -248,6 +258,8 @@ void setup(void) {
   server.on("/", handleRoot);
   
   server.on(F("/command"), HTTP_POST, handleCommand);
+
+  server.on(F("/status"), HTTP_GET, handleStatus);
 
   server.onNotFound(handleNotFound);
 
