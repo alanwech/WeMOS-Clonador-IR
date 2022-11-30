@@ -49,59 +49,55 @@ bool AC_Control::send(function_t function, IRsend &irsend) {
     Serial.print("Executing function: ");
     Serial.print(function);
 
+    uint32_t code;
+
     switch (function) {
         case POWER:
             power = !power;
-            if (power) {
-                // para prender tiene que generar el estado
-                ret = irsend.send(getProtocol(), convertState(), getNBits());
-            } else {
-                // para apagar manda siempre el mismo estado
-                ret = irsend.send(getProtocol(), kCoolixPower, getNBits());
-            }
+            // para prender tiene que generar el estado, para apagar manda siempre el mismo estado
+            code = (power) ? convertState() : kCoolixPower; 
             break;
         case TEMP_UP:
             (temp < maxTemp) ? temp++ : ret = false;
-            ret = irsend.send(getProtocol(), convertState(), getNBits());
+            code = convertState();
             break;
         case TEMP_DOWN:
             (temp > minTemp) ? temp-- : ret = false;
-            ret = irsend.send(getProtocol(), convertState(), getNBits());
+            code = convertState();
             break;
         case MODE:
             mode = (mode + 1) % sizeof(kCoolixModeMap)/sizeof(uint8_t);
-            ret = irsend.send(getProtocol(), convertState(), getNBits());
+            code = convertState();
             break;
         case FAN:
             fan = (fan + 1) % sizeof(kCoolixFanMap)/sizeof(uint8_t); 
-            ret = irsend.send(getProtocol(), convertState(), getNBits());
+            code = convertState();
             break;
         case TURBO:
             turbo = !turbo;
-            ret = irsend.send(getProtocol(), kCoolixTurbo, getNBits());
+            code = kCoolixTurbo;
             break;
         case SLEEP:
             sleep = !sleep;
-            ret = irsend.send(getProtocol(), kCoolixSleep, getNBits());
+            code = kCoolixSleep;
             break;
         case LED:
             led = !led;
-            ret = irsend.send(getProtocol(), kCoolixLight, getNBits());
+            code = kCoolixLight;
             break;
         case SWING:
             swing = !swing;
-            ret = irsend.send(getProtocol(), kCoolixSwing, getNBits());
+            code = kCoolixSwing;
             break;
     }
+
+    ret = irsend.send(getProtocol(), code, getNBits());
     
     return ret;
 }
-/*
-bool AC_Control::sendState(uint32_t code, IRsend &irsend) {
-    return irsend.send(m_protocol, code, nbits);
-}
-*/
+
 uint32_t AC_Control::convertState() {
+    m_state = generateState();
     return (m_state.fixed << 19) | (m_state.unk1 << 16) | (m_state.fan << 13) | (m_state.sensor << 8) | (m_state.temp << 4) | (m_state.mode << 2) | (m_state.unk2);
 }
 
