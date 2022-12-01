@@ -3,17 +3,45 @@
 #include "ESP8266WebServer.h"
 #include "ESP8266mDNS.h"
 #include "ArduinoJson.h"
+#include "IRremoteESP8266.h"
 #include "IRsend.h"
 #include "Pagina.h"
-#include "controls.h"
+#include "control.h"
+#include "protocols.h"
+
+#include "IRac.h"
+#include "IRtext.h"
+#include "IRutils.h"
+
+#define ACCESS_POINT 0
+#define DEBUG_TRAMAS 1
 
 #ifndef STASSID
-#define STASSID "WechAP"
-#define STAPSK  "" //COMPLETAR CON PASSWORD FUERA DE GIT
+#if ACCESS_POINT
+
+#define STASSID "WifiPlaca"
+#define STAPSK  "123456789"
+
+#else
+
+#define STASSID "Fibertel Thea 2.4 GHz."
+#define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
+
+#endif
 #endif
 
 #define IR_SEND_LED 12    // GPIO12 = D6
+#define IR_RECV_PIN 14    // GPIO14 = D5
 
+#if DEBUG_TRAMAS
+const uint32_t kBaudRate = 115200;
+const uint16_t kCaptureBufferSize = 1024;
+const uint8_t kTimeout = 60;
+const uint16_t kMinUnknownSize = 12;
+const uint8_t kTolerancePercentage = kTolerance;  // kTolerance is normally 25%
+IRrecv irrecv(IR_RECV_PIN, kCaptureBufferSize, kTimeout, true);
+decode_results results;  // Somewhere to store the results
+#endif
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
@@ -25,26 +53,17 @@ const char* password = STAPSK;
 ESP8266WebServer server(80);
 
 IRsend irsend(IR_SEND_LED);
-control_t TVDormitorioAlan = { "tv_dormitorio_alan", rc5_functions };
-control_t TVLucho = { "tv_lucho", nikai_functions };
 
+Control TVDormitorioAlan("tv_dormitorio_alan", RC5_Protocol);
+Control TVLucho("tv_lucho", Nikai_Protocol);
+Control Proyector("proyector", Epson_Protocol);
+AC_Control Aire("aire", Coolix_Protocol);
+
+bool power = false;
 const int led = 13;
 
 void handleRoot() {
   server.send(200, "text/html", webpage);
-}
-
-// Searches for code
-uint64_t getCode(control_t *control, function_t *function) {
-  uint64_t code = 0;
-  uint32_t size = sizeof(*(control->functions));
-  for (uint32_t i = 0; i < size; i++) {
-    if (*function == control->functions[i].function) {
-      code = control->functions[i].code;
-      break;
-    }  
-  }
-  return code;
 }
 
 void handleCommand(){
@@ -76,33 +95,70 @@ void handleCommand(){
  
                 // Here store data or doing operation
  
-                const char* disp = postObj["dispositivo"];
+                String disp = postObj["dispositivo"];
                 function_t function = postObj["id"];
 
                 Serial.println(disp);
                 Serial.println(function);
                 uint64_t code;
+
                 
                 if (disp == "tv_dormitorio_alan") {
-                  code = getCode(&TVDormitorioAlan, &function);
-                  //uint64_t code = 0xC;
-                  if (code != 0) {
-                    irsend.sendRC5(code, 12);
+                  if (TVDormitorioAlan.send(function, irsend)) {
+                    Serial.println("Sent successfully."); 
+                  } else {
+                    Serial.println("Couldn't send");
                   }
+
                 } else if (disp == "tv_lucho") {
-                  code = getCode(&TVLucho, &function);
-                  if (code != 0) {
-                    irsend.sendNikai(code, 24);
+                  if (TVLucho.send(function, irsend)) {
+                    Serial.println("Sent successfully."); 
+                  } else {
+                    Serial.println("Couldn't send");
                   }
-                }
-                if (code != 0) {
-                  Serial.print("Sending function id ");
-                  Serial.println(function);
-                } else {
-                  Serial.println("Code not found for action requested");  
+                
+                } else if (disp == "proyector") {
+                  if (Proyector.send(function, irsend)) {
+                    Serial.println("Sent successfully."); 
+                  } else {
+                    Serial.println("Couldn't send");
+                  }
+
+                } else if (disp == "aire") {
+                  if (Aire.send(function, irsend)) {
+                    Serial.println("Sent successfully.");
+                  } else {
+                    Serial.println("Couldn't send");
+                  }
                 }
 
-                //hacerAlgo(disp,id);
+                
+#if DEBUG_TRAMAS
+                if (irrecv.decode(&results)) {
+                  // Display a crude timestamp.
+                  uint32_t now = millis();
+                  Serial.printf(D_STR_TIMESTAMP " : %06u.%03u\n", now / 1000, now % 1000);
+                  
+                  // Check if we got an IR message that was to big for our capture buffer.
+                  if (results.overflow)
+                    Serial.printf(D_WARN_BUFFERFULL "\n", kCaptureBufferSize);
+                  
+                  // Display the library version the message was captured with.
+                  Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
+                  
+                  // Display the tolerance percentage if it has been change from the default.
+                  if (kTolerancePercentage != kTolerance)
+                    Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
+                  
+                  // Display the basic output of what we found.
+                  Serial.print(resultToHumanReadableBasic(&results));
+                  
+                  // Display any extra A/C info if we have it.
+                  String description = IRAcUtils::resultAcToString(&results);
+                  if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
+                  yield();  // Feed the WDT as the text output can take a while to print.
+                }
+#endif
                  
                 // Create the response
                 // To get the status of the result you can get the http status so
@@ -133,6 +189,17 @@ void handleCommand(){
     }
 }
 
+void handleStatus(){
+  DynamicJsonDocument doc = Aire.toJSON();
+
+  Serial.print(F("Sending Status."));
+  String buf;
+  serializeJson(doc, buf);
+
+  server.send(200, F("application/json"), buf);
+  Serial.print(F("done."));
+}
+
 void handleNotFound() {
   digitalWrite(led, 1);
   String message = "File Not Found\n\n";
@@ -151,8 +218,23 @@ void handleNotFound() {
 
 void setup(void) {
   Serial.begin(115200);
+
+
+
+#if ACCESS_POINT
+
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(ssid, password);
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
+  server.begin();
+  Serial.println("Server started");
+
+#else
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
+  
   Serial.println("");
 
   // Wait for connection
@@ -170,9 +252,14 @@ void setup(void) {
     Serial.println("MDNS responder started");
   }
 
+#endif
+
+
   server.on("/", handleRoot);
   
   server.on(F("/command"), HTTP_POST, handleCommand);
+
+  server.on(F("/status"), HTTP_GET, handleStatus);
 
   server.onNotFound(handleNotFound);
 
@@ -181,6 +268,15 @@ void setup(void) {
 
   irsend.begin();
   Serial.println("IRsend started");
+
+  Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", IR_RECV_PIN);
+
+#if DECODE_HASH
+  // Ignore messages with less than minimum on or off pulses.
+  irrecv.setUnknownThreshold(kMinUnknownSize);
+#endif  // DECODE_HASH
+  irrecv.setTolerance(kTolerancePercentage);  // Override the default tolerance.
+  irrecv.enableIRIn();  // Start the receiver
 }
 
 void loop(void) {
