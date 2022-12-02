@@ -56,10 +56,10 @@ const char webpage[] =
             <div style="text-align: center;">
                 <h1>Clonador de Controles Infrarrojos</h1>
             </div>
-            <div class="container">
+            <div>
                 <div class="row">
                     <div class="col">
-                        <button class="button" onclick="display('tv_lucho')">Television</button>
+                        <button class="button" onclick="display('televisor')">Television</button>
                     </div>
                     <div class="col">
                         <button class="button" onclick="display('aire')">Aire Acondicionado</button><BR>
@@ -69,7 +69,13 @@ const char webpage[] =
                     </div>
                 </div>
             </div><br><hr><br>
-            <div id="tv_lucho"  style="display:none;">
+            <div id="televisor"  style="display:none;">
+                <div>
+                    <select id="device" onchange="changeDevice()">
+                        <option value="tv_lucho">TV Lucho</option>
+                        <option value="tv_alan">TV Alan</option>
+                    </select>
+                </div>
                 <div class="row centrar">
                     <div class="col  centrar" >
                         <button class="button" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
@@ -117,7 +123,7 @@ const char webpage[] =
                 </div>
             </div>
             </div>
-            <div id="aire"  style="display:none;" class="container" >
+            <div id="aire"  style="display:none;">
             <div class="fila">
                 <div class="columna">
                     <div class="row centrar">
@@ -281,7 +287,7 @@ const char webpage[] =
                     false : 'OFF'
                 }
 
-                const devices = ['tv_lucho','aire','proyector']
+                const controles = ['televisor','aire','proyector']
 
                 const grados = '%C2%B0C'
                 const f_izquierda = '%E2%86%90'
@@ -308,7 +314,7 @@ const char webpage[] =
                 }
 
                 function display(id) {
-                    devices.forEach(element => {
+                    controles.forEach(element => {
                         if (element == id){
                             document.getElementById(element).style.display = "block"
                             device = id;
@@ -337,12 +343,13 @@ const char webpage[] =
                     const http = new window.XMLHttpRequest();
                     http.onreadystatechange = function() {
                         if (this.readyState == 4 && this.status == 200) {
-                            document.getElementById("mode").innerHTML = modos[this.response.mode];
-                            document.getElementById("fan").innerHTML = velocidades[this.response.fan];
-                            document.getElementById("power").innerHTML = on_off[this.response.power];
-                            document.getElementById("led").innerHTML = on_off[this.response.led];
-                            document.getElementById("swing").innerHTML = on_off[this.response.swing];
-                            document.getElementById("temp").innerHTML = this.response.temp;
+                            let status = JSON.parse(this.responseText);
+                            document.getElementById("mode").innerHTML = modos[status.mode];
+                            document.getElementById("fan").innerHTML = velocidades[status.fan];
+                            document.getElementById("power").innerHTML = on_off[status.power];
+                            document.getElementById("led").innerHTML = on_off[status.led];
+                            document.getElementById("swing").innerHTML = on_off[status.swing];
+                            document.getElementById("temp").innerHTML = status.temp;
                         }
                     };
                     http.getResponseHeader("Content-type", "application/json");
