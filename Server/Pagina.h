@@ -1,6 +1,6 @@
 const char webpage[] = 
   R"=====(
-  <!DOCTYPE html>
+    <!DOCTYPE html>
     <html>
         <style type="text/css">
             .button {
@@ -36,19 +36,28 @@ const char webpage[] =
             }
 
             .fila {
-            display: flex;
+                display: flex;
             }
 
             .b2 {
-            width: 50%;
+                width: 50%;
             }
 
             .b3 {
-            width: 33.33%;
+                width: 33.33%;
             }
 
             .columna {
-            flex: 50%;
+                flex: 50%;
+            }
+
+            select, select:focus, optgroup {
+                width: 400px;
+                height: 30px;
+                color: white;
+                border-color: black;
+                color: #000;
+                border-radius: 5px;
             }
 
         </style>
@@ -56,10 +65,10 @@ const char webpage[] =
             <div style="text-align: center;">
                 <h1>Clonador de Controles Infrarrojos</h1>
             </div>
-            <div class="container">
+            <div>
                 <div class="row">
                     <div class="col">
-                        <button class="button" onclick="display('tv_lucho')">Television</button>
+                        <button class="button" onclick="display('televisor')">Television</button>
                     </div>
                     <div class="col">
                         <button class="button" onclick="display('aire')">Aire Acondicionado</button><BR>
@@ -68,8 +77,18 @@ const char webpage[] =
                         <button class="button" onclick="display('proyector')">Proyector</button><BR>
                     </div>
                 </div>
-            </div><br><hr><br>
-            <div id="tv_lucho"  style="display:none;">
+            </div><br><hr>
+            <div id="televisor"  style="display:none;">
+                <div class="row centrar" >
+                    <div class="col centrar">
+                        <label>Seleccione TV</label>
+                        <select id="televisores" onchange="changeDevice('televisores')">
+                            <option value="tv_lucho">TV Lucho</option>
+                            <option value="tv_dormitorio_alan">TV Alan</option>
+                        </select>
+                    </div>
+                </div>
+                <hr>
                 <div class="row centrar">
                     <div class="col  centrar" >
                         <button class="button" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
@@ -88,144 +107,162 @@ const char webpage[] =
                     </div>
                 </div>
                 <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button" onclick="send_command(buttons['UP'])"><span id="f_arriba_tv"></span></button>
-                </div>
-            </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button b3" onclick="send_command(buttons['LEFT'])"><span id="f_izquierda_tv"></span></button>
-                    <button class="button b3" onclick="send_command(buttons['ACCEPT'])">OK</button>
-                    <button class="button b3" onclick="send_command(buttons['RIGHT'])"><span id="f_derecha_tv"></span></button>
-                </div>
-            </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button" onclick="send_command(buttons['DOWN'])"><span id="f_abajo_tv"></span></button>
-                </div>
-            </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button b2" onclick="send_command(buttons['HOME'])">HOME</button>
-                    <button class="button b2" onclick="send_command(buttons['MUTE'])">MUTE</button>
-                </div>
-            </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button b2" onclick="send_command(buttons['BACK'])">BACK</button>
-                    <button class="button b2" onclick="send_command(buttons['CONFIGURATION'])">CONF</button>
-                </div>
-            </div>
-            </div>
-            <div id="aire"  style="display:none;" class="container" >
-            <div class="fila">
-                <div class="columna">
-                    <div class="row centrar">
-                        <div class="col  centrar" >
-                            <button class="button" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
-                        </div>
-                    </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <button class="button" onclick="send_command(buttons['MODE'])">MODO</button>
-                        </div>
-                    </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <button class="button b2" onclick="send_command(buttons['TEMP_UP'])">TEMP+</button>
-                            <button class="button b2" onclick="send_command(buttons['TEMP_DOWN'])">TEMP-</button>
-                        </div>
-                    </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <button class="button b2" onclick="send_command(buttons['FAN'])">VELOCIDAD</button>
-                            <button class="button b2" onclick="send_command(buttons['SWING'])">SWING</button>
-                        </div>
-                    </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <button class="button" onclick="send_command(buttons['LED'])">LED</button>
-                        </div>
+                    <div class="col centrar">
+                        <button class="button" onclick="send_command(buttons['UP'])"><span id="f_arriba_tv"></span></button>
                     </div>
                 </div>
-                <div class="columna">
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <h2>Power: <span id="power"></span></h2>
-                        </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button b3" onclick="send_command(buttons['LEFT'])"><span id="f_izquierda_tv"></span></button>
+                        <button class="button b3" onclick="send_command(buttons['ACCEPT'])">OK</button>
+                        <button class="button b3" onclick="send_command(buttons['RIGHT'])"><span id="f_derecha_tv"></span></button>
                     </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <h2>Mode: <span id="mode"></span></h2>
-                        </div>
+                </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button" onclick="send_command(buttons['DOWN'])"><span id="f_abajo_tv"></span></button>
                     </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <h2>Temperatura: <span id="temp"></span><span id="grados"></span></h2>
-                        </div>
+                </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button b2" onclick="send_command(buttons['HOME'])">HOME</button>
+                        <button class="button b2" onclick="send_command(buttons['MUTE'])">MUTE</button>
                     </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <h2>Velocidad: <span id="fan"></span></h2>
-                        </div>
-                    </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <h2>Swing: <span id="swing"></span></h2>
-                        </div>
-                    </div>
-                    <div class="row centrar">
-                        <div class="col centrar">
-                            <h2>LED: <span id="led"></span></h2>
-                        </div>
+                </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button b2" onclick="send_command(buttons['BACK'])">BACK</button>
+                        <button class="button b2" onclick="send_command(buttons['CONFIGURATION'])">CONF</button>
                     </div>
                 </div>
             </div>
+            <div id="aire" style="display:none;">
+                <div class="row centrar" style="display:none;">
+                    <div class="col centrar">
+                        <label>Seleccione Aire</label>
+                        <select id="airees" onchange="changeDevice('airees')">
+                            <option value="aire">Aire Coolix</option>
+                        </select>
+                    </div>
+                </div>
+                <hr>
+                <div class="fila">
+                    <div class="columna">
+                        <div class="row centrar">
+                            <div class="col  centrar" >
+                                <button class="button" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <button class="button" onclick="send_command(buttons['MODE'])">MODO</button>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <button class="button b2" onclick="send_command(buttons['TEMP_UP'])">TEMP+</button>
+                                <button class="button b2" onclick="send_command(buttons['TEMP_DOWN'])">TEMP-</button>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <button class="button b2" onclick="send_command(buttons['FAN'])">VELOCIDAD</button>
+                                <button class="button b2" onclick="send_command(buttons['SWING'])">SWING</button>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <button class="button" onclick="send_command(buttons['LED'])">LED</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="columna">
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <h2>Power: <span id="power"></span></h2>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <h2>Mode: <span id="mode"></span></h2>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <h2>Temperatura: <span id="temp"></span><span id="grados"></span></h2>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <h2>Velocidad: <span id="fan"></span></h2>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <h2>Swing: <span id="swing"></span></h2>
+                            </div>
+                        </div>
+                        <div class="row centrar">
+                            <div class="col centrar">
+                                <h2>LED: <span id="led"></span></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div id="proyector"  style="display:none;">
-            <div class="row centrar">
-                <div class="col  centrar" >
-                    <button class="button b3" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
-                    <button class="button b3" onclick="send_command(buttons['SOURCE'])">SOURCE</button>
-                    <button class="button b3" onclick="send_command(buttons['HELP'])">HELP</button>
+                <div class="row centrar" style="display: none;">
+                    <div class="col centrar">
+                        <label>Seleccione Proyector</label>
+                        <select id="proyectores" onchange="changeDevice('proyectores')">
+                            <option value="proyector">Proyector Facultad</option>
+                        </select>
+                    </div>
+                </div>
+                <hr>
+                <div class="row centrar">
+                    <div class="col  centrar" >
+                        <button class="button b3" style="background-color: #f32c2c" onclick="send_command(buttons['POWER'])">ON/OFF</button>
+                        <button class="button b3" onclick="send_command(buttons['SOURCE'])">SOURCE</button>
+                        <button class="button b3" onclick="send_command(buttons['HELP'])">HELP</button>
+                    </div>
+                </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button b3" onclick="send_command(buttons['MENU'])">MENU</button>
+                        <button class="button b3" onclick="send_command(buttons['UP'])"><span id="f_arriba_p"></span></button>
+                        <button class="button b3" onclick="send_command(buttons['BACK'])">BACK</button>
+                    </div>
+                </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button b3" onclick="send_command(buttons['LEFT'])"><span id="f_izquierda_p"></span></button>
+                        <button class="button b3" onclick="send_command(buttons['ACCEPT'])">OK</button>
+                        <button class="button b3" onclick="send_command(buttons['RIGHT'])"><span id="f_derecha_p"></span></button>
+                    </div>
+                </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button b3" onclick="send_command(buttons['AUTO'])">AUTO</button>
+                        <button class="button b3" onclick="send_command(buttons['DOWN'])"><span id="f_abajo_p"></span></button>
+                        <button class="button b3" onclick="send_command(buttons['VOLUME'])">VOLUME</button>
+                    </div>
+                </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button b3" onclick="send_command(buttons['PAGE_UP'])">PAGE+</button>
+                        <button class="button b3" onclick="send_command(buttons['ZOOM_IN'])">ZOOM+</button>
+                        <button class="button b3" onclick="send_command(buttons['FREEZE'])">FREEZE</button>
+                    </div>
+                </div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button class="button b3" onclick="send_command(buttons['PAGE_DOWN'])">PAGE-</button>
+                        <button class="button b3" onclick="send_command(buttons['ZOOM_OUT'])">ZOOM-</button>
+                        <button class="button b3" onclick="send_command(buttons['MUTE'])">MUTE</button>
+                    </div>
                 </div>
             </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button b3" onclick="send_command(buttons['MENU'])">MENU</button>
-                    <button class="button b3" onclick="send_command(buttons['UP'])"><span id="f_arriba_p"></span></button>
-                    <button class="button b3" onclick="send_command(buttons['BACK'])">BACK</button>
-                </div>
-            </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button b3" onclick="send_command(buttons['LEFT'])"><span id="f_izquierda_p"></span></button>
-                    <button class="button b3" onclick="send_command(buttons['ACCEPT'])">OK</button>
-                    <button class="button b3" onclick="send_command(buttons['RIGHT'])"><span id="f_derecha_p"></span></button>
-                </div>
-            </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button b3" onclick="send_command(buttons['AUTO'])">AUTO</button>
-                    <button class="button b3" onclick="send_command(buttons['DOWN'])"><span id="f_abajo_p"></span></button>
-                    <button class="button b3" onclick="send_command(buttons['VOLUME'])">VOLUME</button>
-                </div>
-            </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button b3" onclick="send_command(buttons['PAGE_UP'])">PAGE+</button>
-                    <button class="button b3" onclick="send_command(buttons['ZOOM_IN'])">ZOOM+</button>
-                    <button class="button b3" onclick="send_command(buttons['FREEZE'])">FREEZE</button>
-                </div>
-            </div>
-            <div class="row centrar">
-                <div class="col centrar">
-                    <button class="button b3" onclick="send_command(buttons['PAGE_DOWN'])">PAGE-</button>
-                    <button class="button b3" onclick="send_command(buttons['ZOOM_OUT'])">ZOOM-</button>
-                    <button class="button b3" onclick="send_command(buttons['MUTE'])">MUTE</button>
-                </div>
-            </div>
-        </div>
             <script>
                 const buttons = {
                     'POWER': 0,
@@ -281,7 +318,7 @@ const char webpage[] =
                     false : 'OFF'
                 }
 
-                const devices = ['tv_lucho','aire','proyector']
+                const controles = ['televisor','aire','proyector']
 
                 const grados = '%C2%B0C'
                 const f_izquierda = '%E2%86%90'
@@ -308,46 +345,51 @@ const char webpage[] =
                 }
 
                 function display(id) {
-                    devices.forEach(element => {
+                    controles.forEach(element => {
                         if (element == id){
                             document.getElementById(element).style.display = "block"
-                            device = id;
+                            changeDevice(id+'es') //plural del control
                         } else {
                             document.getElementById(element).style.display = "none"
                         }
                     });
                 }
 
+                function changeDevice(arg) {
+                    device = document.getElementById(arg).value
+                }
+
                 function send_command(id){
-                    const http = new window.XMLHttpRequest();
-                    //http.open('POST','http://192.168.0.110/command',true);
-                    http.open('POST', window.location.href + 'command',true);
+                    const http = new window.XMLHttpRequest()
+                    //http.open('POST','http://192.168.0.110/command',true)
+                    http.open('POST', window.location.href + 'command',true)
                     http.onreadystatechange = function() {
                         if (device == 'aire' && this.readyState == 4 && this.status == 201) {
-                            get_status();
+                            get_status()
                         }
-                    };
-                    http.setRequestHeader("Content-Type", "application/json");
-                    var data = {dispositivo: device, id: id};
-                    console.log(data);
-                    http.send(JSON.stringify(data));
+                    }
+                    http.setRequestHeader("Content-Type", "application/json")
+                    var data = {dispositivo: device, id: id}
+                    console.log(data)
+                    http.send(JSON.stringify(data))
                 }
 
                 function get_status(){
-                    const http = new window.XMLHttpRequest();
+                    const http = new window.XMLHttpRequest()
                     http.onreadystatechange = function() {
                         if (this.readyState == 4 && this.status == 200) {
-                            document.getElementById("mode").innerHTML = modos[this.response.mode];
-                            document.getElementById("fan").innerHTML = velocidades[this.response.fan];
-                            document.getElementById("power").innerHTML = on_off[this.response.power];
-                            document.getElementById("led").innerHTML = on_off[this.response.led];
-                            document.getElementById("swing").innerHTML = on_off[this.response.swing];
-                            document.getElementById("temp").innerHTML = this.response.temp;
+                            let status = JSON.parse(this.responseText)
+                            document.getElementById("mode").innerHTML = modos[status.mode]
+                            document.getElementById("fan").innerHTML = velocidades[status.fan]
+                            document.getElementById("power").innerHTML = on_off[status.power]
+                            document.getElementById("led").innerHTML = on_off[status.led]
+                            document.getElementById("swing").innerHTML = on_off[status.swing]
+                            document.getElementById("temp").innerHTML = status.temp
                         }
-                    };
-                    http.getResponseHeader("Content-type", "application/json");
-                    http.open('GET', window.location.href + 'status',true);
-                    http.send();
+                    }
+                    http.getResponseHeader("Content-type", "application/json")
+                    http.open('GET', window.location.href + 'status',true)
+                    http.send()
                 }
             </script>
         </body>

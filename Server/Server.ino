@@ -230,7 +230,10 @@ void setup(void) {
   Serial.println(myIP);
   server.begin();
   Serial.println("Server started");
-
+  char buffer[60];
+  sprintf(buffer, "Network name: %s\nPassword: %s", ssid, password);
+  Serial.println(buffer);
+  
 #else
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
