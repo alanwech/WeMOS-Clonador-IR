@@ -20,8 +20,16 @@ class Control {
         uint64_t getCode(function_t function);
 };
 
+class AC_Control : public Control {
+    public:
+        AC_Control(String name, protocol_t protocol);
+        ~AC_Control() {}
+        bool send(function_t function, IRsend &irsend);
+        DynamicJsonDocument toJSON();
+    
+}
 
-class AC_Control : public Control{
+class AC_Control_Coolix : public AC_Control{
     public:
         AC_Control(String name, protocol_t protocol);
         ~AC_Control() {}
@@ -45,11 +53,28 @@ class AC_Control : public Control{
 
         bool power, turbo, sleep, led, swing;
         uint8_t temp, fan, mode;
-        state_t m_state;
+        coolix_state_t m_state;
 
-        //bool sendState(uint32_t code, IRsend &irsend);
-        uint32_t convertState();
-        state_t generateState();
+    
+};
+
+class AC_Control_Kelon168 : public AC_Control{
+    public:
+        AC_Control(String name, protocol_t protocol);
+        ~AC_Control() {}
+        bool send(function_t function, IRsend &irsend);
+        DynamicJsonDocument toJSON();
+    private:
+        static const uint8_t maxTemp = 31, minTemp = 16; // Celsius
+
+        static uint8_t kKelon168TempMap[16];
+        static uint8_t kKelon168FanMap[5];
+        static uint8_t kKelon168ModeMap[4];
+
+        bool power, sleep, led, swing;
+        uint8_t temp, fan, mode;
+        kelon168_state_t m_state;
+
 };
 
 #endif

@@ -27,10 +27,23 @@ bool Control::send(function_t function, IRsend &irsend) {
     } else {
       return false;
     }
-}        
+}
 
 
-AC_Control::AC_Control(String name, protocol_t protocol) : Control(name, protocol) {
+AC_Control::AC_Control_Coolix(String name, protocol_t protocol) : Control(name, protocol) {
+  power = false;
+  turbo = false;
+  sleep = false;
+  led = false;
+  swing = false;
+  temp = 25;
+  fan = 0;
+  mode = 0;
+  m_state = generateState();
+  Serial.println("AC_Control class created");
+}
+
+AC_Control::AC_Control_Kelon168(String name, protocol_t protocol) : Control(name, protocol) {
   power = false;
   turbo = false;
   sleep = false;
@@ -96,12 +109,12 @@ bool AC_Control::send(function_t function, IRsend &irsend) {
     return ret;
 }
 
-uint32_t AC_Control::convertState() {
+uint32_t AC_Control_Coolix::convertState() {
     m_state = generateState();
     return (m_state.fixed << 19) | (m_state.unk1 << 16) | (m_state.fan << 13) | (m_state.sensor << 8) | (m_state.temp << 4) | (m_state.mode << 2) | (m_state.unk2);
 }
 
-state_t AC_Control::generateState() {
+coolix_state_t AC_Control_Coolix::generateState() {
     // idealmente es un union o bitfield?
     //uint32_t state = 0b10110 << 26;
     //state |= 0b010 << 
@@ -114,6 +127,15 @@ state_t AC_Control::generateState() {
     newState.temp = kCoolixTempMap[temp-17];
     newState.mode = kCoolixModeMap[mode];
     newState.unk2 = 0b00;
+
+    return newState;
+}
+
+uint32_t AC_Control_Kelon168::convertState() {
+
+}
+
+kelon168_state_t AC_Control_Kelon168::generateState() {
 
     return newState;
 }
@@ -150,6 +172,25 @@ uint8_t AC_Control::kCoolixTempMap[14] = {
     0b1011   // 30C
 };
 
+uint8_t AC_Control::kKelon168TempMap[16] = {
+    0b0000,  // 16C
+    0b0001,  // 17C
+    0b0010,  // 18C
+    0b0011,  // 19C
+    0b0100,  // 20C
+    0b0101,  // 21C
+    0b0110,  // 22C
+    0b0111,  // 23C
+    0b1000,  // 24C
+    0b1001,  // 25C
+    0b1010,  // 26C
+    0b1011,  // 27C
+    0b1100,  // 28C
+    0b1101,  // 29C
+    0b1110,  // 30C
+    0b1111   // 31C
+};
+
 uint8_t AC_Control::kCoolixFanMapCool[4] = {
     0b101,  // Auto alt se activa en modo cool
     0b100,  // Min
@@ -166,6 +207,14 @@ uint8_t AC_Control::kCoolixFanMap[4] = {
     //0b111  // Fixed?
 };
 
+uint8_t AC_Control::kKelon168FanMap[5] = {
+    0b000,  // Auto
+    0b011,  // Min
+    0b010,  // Med
+    0b001,  // Max
+    0b100 // Off
+};
+
 uint8_t AC_Control::kCoolixModeMap[4] = {
     0b00,  // Cool
     0b01,  // Dry
@@ -174,11 +223,10 @@ uint8_t AC_Control::kCoolixModeMap[4] = {
     //0b100,  // Fan, 1 bit mas?
 };
 
-/*
-const uint8_t kCoolingSwingMap[] {
-    auto
-    low
-    mid
-    high
-}; 
-*/
+uint8_t AC_Control::kKelon168ModeMap[4] = {
+    0b0010,  // Cool
+    0b0011,  // Dry
+    0b0100,  // Fan
+    0b0000  // Heat
+    // No tiene auto?
+};
