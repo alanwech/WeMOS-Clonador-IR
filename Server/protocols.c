@@ -1,8 +1,12 @@
 #include "protocols.h"
 
-protocol_t Nikai_Protocol = {NIKAI, nikai_functions, 24};
+#define NIKAI_LENGTH 14
+#define RC5_LENGTH 5
+#define EPSON_LENGTH 18
 
-key nikai_functions[] = {
+protocol_t Nikai_Protocol = {NIKAI, nikai_functions, NIKAI_LENGTH, 24};
+
+key nikai_functions[NIKAI_LENGTH] = {
   {0xD5F2A, POWER},
   {0xD0F2F, VOLUME_UP},
   {0xD1F2E, VOLUME_DOWN},
@@ -16,12 +20,13 @@ key nikai_functions[] = {
   {0x30FCF, CONFIGURATION},
   {0xF7F08, HOME},
   {0xBFF4, ACCEPT},
-  {0xC0F3F, MUTE}
+  {0xC0F3F, MUTE},
+  {0x3333, FREEZE}
 };
 
-protocol_t RC5_Protocol = {RC5, rc5_functions, 16};
+protocol_t RC5_Protocol = {RC5, rc5_functions, RC5_LENGTH, 12};
 
-key rc5_functions[] = {
+key rc5_functions[RC5_LENGTH] = {
   {0x80C, POWER},
   {0x810, VOLUME_UP},
   {0x811, VOLUME_DOWN},
@@ -29,9 +34,9 @@ key rc5_functions[] = {
   {0x821, CHANNEL_DOWN}
 };
 
-protocol_t Epson_Protocol = {EPSON, epson_functions, 32};
+protocol_t Epson_Protocol = {EPSON, epson_functions, EPSON_LENGTH, 32};
 
-key epson_functions[] = {
+key epson_functions[EPSON_LENGTH] = {
   {0xC1AA09F6, POWER},
   {0xC1AA0DF2, UP},
   {0xC1AA4DB2, DOWN},
@@ -52,4 +57,5 @@ key epson_functions[] = {
   {0xC1AAC936, MUTE}
 };
 
-protocol_t Coolix_Protocol = {COOLIX, 0, 24};
+// Los protocolos de A/C no tienen una lista de funciones
+protocol_t Coolix_Protocol = {COOLIX, 0, 0, 24};

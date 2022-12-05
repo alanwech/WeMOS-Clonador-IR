@@ -49,6 +49,7 @@ typedef struct {
 typedef struct protocol_t {
   decode_type_t name;
   key *functions;
+  uint32_t functions_length;
   uint32_t nbits;
 } protocol_t;
 

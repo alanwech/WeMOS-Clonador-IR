@@ -104,6 +104,7 @@ void handleCommand(){
 
                 
                 if (disp == "tv_dormitorio_alan") {
+                  Serial.println("TV Alan");
                   if (TVDormitorioAlan.send(function, irsend)) {
                     Serial.println("Sent successfully."); 
                   } else {

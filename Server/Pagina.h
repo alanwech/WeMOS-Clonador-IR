@@ -184,7 +184,7 @@ const char webpage[] =
                         </div>
                         <div class="row centrar">
                             <div class="col centrar">
-                                <h2>Mode: <span id="mode"></span></h2>
+                                <h2>Modo: <span id="mode"></span></h2>
                             </div>
                         </div>
                         <div class="row centrar">
@@ -301,9 +301,9 @@ const char webpage[] =
 
                 const modos = {
                     0 : 'FRIO',
-                    1 : 'CALOR',
-                    2 : 'HUMEDAD',
-                    3 : 'VENTILADOR'
+                    1 : 'HUMEDAD',
+                    2 : 'AUTO',
+                    3 : 'CALOR'
                 }
 
                 const velocidades = {
