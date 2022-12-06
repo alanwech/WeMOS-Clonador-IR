@@ -54,10 +54,13 @@ ESP8266WebServer server(80);
 
 IRsend irsend(IR_SEND_LED);
 
-Control TVDormitorioAlan("tv_dormitorio_alan", RC5_Protocol);
-Control TVLucho("tv_lucho", Nikai_Protocol);
+Control TV_JVC("tv_jvc", RC5_Protocol);
+Control TV_TCL("tv_tcl", Nikai_Protocol);
+Control TV_Sony("tv_sony", Sony_Protocol);
 Control Proyector("proyector", Epson_Protocol);
 AC_Control Aire("aire", Coolix_Protocol);
+
+Control *devices[] = {&TV_JVC, &TV_TCL, &TV_Sony, &Proyector, &Aire};
 
 bool power = false;
 const int led = 13;
@@ -102,35 +105,18 @@ void handleCommand(){
                 Serial.println(function);
                 uint64_t code;
 
-                
-                if (disp == "tv_dormitorio_alan") {
-                  Serial.println("TV Alan");
-                  if (TVDormitorioAlan.send(function, irsend)) {
-                    Serial.println("Sent successfully."); 
-                  } else {
-                    Serial.println("Couldn't send");
+                bool success = false;
+                for (int i = 0; i < 5; i++) {
+                  if (devices[i]->getName() == disp) {
+                    success = devices[i]->send(function, irsend);
+                    break;
                   }
+                }
 
-                } else if (disp == "tv_lucho") {
-                  if (TVLucho.send(function, irsend)) {
-                    Serial.println("Sent successfully."); 
-                  } else {
-                    Serial.println("Couldn't send");
-                  }
-                
-                } else if (disp == "proyector") {
-                  if (Proyector.send(function, irsend)) {
-                    Serial.println("Sent successfully."); 
-                  } else {
-                    Serial.println("Couldn't send");
-                  }
-
-                } else if (disp == "aire") {
-                  if (Aire.send(function, irsend)) {
-                    Serial.println("Sent successfully.");
-                  } else {
-                    Serial.println("Couldn't send");
-                  }
+                if (success) {
+                  Serial.println("Sent successfully");
+                } else {
+                  Serial.println("Could not send");
                 }
 
                 

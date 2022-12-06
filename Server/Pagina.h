@@ -10,7 +10,7 @@ const char webpage[] =
                 border-radius: 5px;
                 flex: auto;
                 color: white;
-                padding: 15px 32px;
+                padding: 15px 28px;
                 text-align: center;
                 display: inline-block;
                 font-size: 16px;
@@ -83,8 +83,9 @@ const char webpage[] =
                     <div class="col centrar">
                         <label>Seleccione TV</label>
                         <select id="televisores" onchange="changeDevice('televisores')">
-                            <option value="tv_lucho">TV Lucho</option>
-                            <option value="tv_dormitorio_alan">TV Alan</option>
+                            <option value="tv_tcl">TCL</option>
+                            <option value="tv_jvc">JVC</option>
+                            <option value="tv_sony">Sony</option>
                         </select>
                     </div>
                 </div>
@@ -259,7 +260,7 @@ const char webpage[] =
                     <div class="col centrar">
                         <button class="button b3" onclick="send_command(buttons['PAGE_DOWN'])">PAGE-</button>
                         <button class="button b3" onclick="send_command(buttons['ZOOM_OUT'])">ZOOM-</button>
-                        <button class="button b3" onclick="send_command(buttons['MUTE'])">MUTE</button>
+                        <button class="button b3" onclick="send_command(buttons['MUTE'])">MUTE A/V</button>
                     </div>
                 </div>
             </div>

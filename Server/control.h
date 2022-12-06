@@ -11,6 +11,7 @@ class Control {
         Control(String name, protocol_t protocol);
         ~Control() {}
         bool send(function_t function, IRsend &irsend);
+        String getName() { return m_name; }
         decode_type_t getProtocol() { return m_protocol.name; }
         uint32_t getNBits() { return m_protocol.nbits; }
     private:
