@@ -9,20 +9,25 @@ uint64_t Control::getCode(function_t function) {
     // EN DESARROLLO devuelve el codigo del control remoto mapeado a su protocolo
     // probablemente un switch case?
     uint64_t code = 0;
-    uint32_t size = sizeof(*(m_protocol.functions));
-    for (uint32_t i = 0; i < size; i++) {
+    Serial.print("Size: ");
+    Serial.println(m_protocol.functions_length);
+    for (uint32_t i = 0; i < m_protocol.functions_length; i++) {
         if (function == m_protocol.functions[i].function) {
             code = m_protocol.functions[i].code;
             break;
         }  
     }
+    Serial.print("Codigo: ");
+    Serial.println(code);
     return code;
 }
 
 // @return True if it is a type we can attempt to send, false if not.
 bool Control::send(function_t function, IRsend &irsend) {
+    Serial.println("Control.send");
     uint64_t code = getCode(function);
     if (code != 0) {
+      Serial.print("Sending");
       return irsend.send(m_protocol.name, code, m_protocol.nbits); // lleva parametros nbits y repeat?
     } else {
       return false;

@@ -49,6 +49,7 @@ typedef struct {
 typedef struct protocol_t {
   decode_type_t name;
   key *functions;
+  uint32_t functions_length;
   uint32_t nbits;
 } protocol_t;
 
@@ -64,11 +65,13 @@ typedef struct state_t {
 
 extern key nikai_functions[];
 extern key rc5_functions[];
+extern key sony_functions[];
 extern key epson_functions[];
 
 extern protocol_t Nikai_Protocol;
 extern protocol_t RC5_Protocol;
 extern protocol_t Epson_Protocol;
+extern protocol_t Sony_Protocol;
 extern protocol_t Coolix_Protocol;
 
 #endif
