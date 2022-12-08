@@ -103,11 +103,11 @@ void handleCommand(){
 
                 Serial.print("Dispositivo: "); Serial.println(disp);
                 Serial.print("Funcion: "); Serial.println(function);
-                
+
+                // Busca el dispositivo en el array y llama a la funcion send
                 bool success = false;
                 for (int i = 0; i < N_DEVICES; i++) {
                   if (devices[i]->getName() == disp) {
-                    Serial.println("Sending");
                     success = devices[i]->send(function, irsend);
                     break;
                   }
@@ -146,7 +146,6 @@ void handleCommand(){
                   yield();  // Feed the WDT as the text output can take a while to print.
                 }
 #endif
-                 
                 // Create the response
                 // To get the status of the result you can get the http status so
                 // this part can be unusefully
@@ -187,6 +186,7 @@ void handleStatus(){
   Serial.print(F("done."));
 }
 
+/* Pagina no encontrada */
 void handleNotFound() {
   
   String message = "File Not Found\n\n";

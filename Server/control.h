@@ -16,14 +16,7 @@ typedef struct state_t {
     uint8_t mode : 2;
     uint8_t unk2 : 2;
 } state_t;
-/*
-fixed unk fan sens  temp md unk
-10110 010 011 11011 1110 00 00    // apagado real
-10110 010 000 01111 1110 00 00    // prueba 1
-10110 010 000 11011 0100 00 00    // prueba 2
-10110 010 011 01111 0100 00 00    // prueba 3
-10110 010 000 01111 0100 10 00    // prendido
-*/
+
 /*
  * Clase Control
  * Simula cualquier control infrarrojo simple como los de un TV o un proyector.

@@ -31,7 +31,7 @@ typedef enum {
     ZOOM_IN,
     ZOOM_OUT,
     FREEZE,
-    AUTO,       // proyector
+    AUTO,        // proyector
     VOLUME,      // proyector
     TEMP_UP,
     TEMP_DOWN,

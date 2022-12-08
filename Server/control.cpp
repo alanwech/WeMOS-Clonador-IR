@@ -43,28 +43,38 @@ AC_Control::AC_Control(String name, protocol_t protocol) : Control(name, protoco
 /// @param function Funcion que se desea realizar con el control
 /// @param irsend Referencia al objeto IRsend que maneja la transmision IR
 /// @return True si se envió sin errores, False en caso contrario
+
 bool AC_Control::send(function_t function, IRsend &irsend) {
+  
     // Sobreescribe Control::send, de esta forma generalizamos todos los controles
     bool ret = true;
 
     uint32_t code;
 
-    Serial.println("AC_Control.send");
-
     switch (function) {
         case POWER:
             power = !power;
-            // para prender tiene que generar el estado, para apagar manda siempre el mismo estado
+            // Para prender tiene que generar el estado, para apagar envía siempre el mismo estado
             code = (power) ? convertState() : kCoolixPower; 
             return irsend.send(getProtocol(), code, getNBits());
             break;
         case TEMP_UP:
-            (temp < maxTemp) ? temp++ : ret = false;
-            code = convertState();
+            // Si ya esta en el maximo de temperatura, no transmite nada ya que no hay ningun cambio
+            if (temp < maxTemp) {
+              temp++;
+              code = convertState();
+            } else {
+              return false;
+            }
             break;
         case TEMP_DOWN:
-            (temp > minTemp) ? temp-- : ret = false;
-            code = convertState();
+            // Si ya esta en el minimo de temperatura, no transmite nada ya que no hay ningun cambio
+            if (temp > minTemp) {
+              temp--;
+              code = convertState();
+            } else {
+              return false;
+            }
             break;
         case MODE:
             mode = (mode + 1) % sizeof(kCoolixModeMap)/sizeof(uint8_t);
@@ -74,6 +84,7 @@ bool AC_Control::send(function_t function, IRsend &irsend) {
             fan = (fan + 1) % sizeof(kCoolixFanMap)/sizeof(uint8_t); 
             code = convertState();
             break;
+        // Los siguientes son todos mensajes "toggle" por lo que no tiene sentido enviarlos si esta apagado el aire
         case TURBO:
             if (power) {
               turbo = !turbo;
@@ -183,7 +194,7 @@ uint8_t AC_Control::kCoolixFanMapCool[4] = {
     0b101,  // Auto alt se activa en modo cool
     0b100,  // Min
     0b010,  // Med
-    0b001  // Max
+    0b001   // Max
 };
 
 uint8_t AC_Control::kCoolixFanMap[4] = {
