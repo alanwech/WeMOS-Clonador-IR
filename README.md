@@ -18,7 +18,7 @@ Tanto el emisor como el receptor IR envían el mensaje modulado @ 38KHz.
 
 
 ## Formas de contribuir
-Por motivos de tiempo no se llegó a implementar algunas características de grán valor para el proyecto.
+Por diversos motivos no se llegó a implementar algunas características de grán valor para el proyecto.
 - Investigar y agregar más integraciones a nuevos protocolos de A/C, por ejemplo Kelon168
 - Agregar más controles remotos de TV/Proyector
 - Posibilidad de agregar controles de TV o proyector (que envíen mensajes fijos en lugar de estados como en los de A/C) en runtime
