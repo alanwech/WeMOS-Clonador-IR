@@ -1,4 +1,9 @@
+# WeMOS-Clonador-IR
+Sistema de administración y clonación de controles remotos infrarrojos para TVs, A/Cs y proyectores.
+
+## Tabla de contenidos
 - [WeMOS-Clonador-IR](#wemos-clonador-ir)
+  - [Tabla de contenidos](#tabla-de-contenidos)
   - [Librerías utilizadas](#librerías-utilizadas)
   - [Instalación y requerimientos](#instalación-y-requerimientos)
   - [Cómo usar](#cómo-usar)
@@ -7,9 +12,6 @@
     - [Control.h](#controlh)
     - [Protocols.h](#protocolsh)
   - [Formas de contribuir](#formas-de-contribuir)
-
-# WeMOS-Clonador-IR
-Sistema de escaneo, administración y clonado de controles remotos infrarrojos.
 
 
 ## Librerías utilizadas
