@@ -1,74 +1,80 @@
 #include "control.h"
-#define IR_SEND_LED 12    // GPIO12 = D6
 
+// Constructor
 Control::Control(String name, protocol_t protocol) : m_name{name}, m_protocol{protocol} {
-    Serial.println("Succesfully created Class Control");
 }
 
+/// @brief Mapea una determinada funcion al codigo IR correspondiente
+/// @param function Funcion que se quiere transmitir
+/// @return Codigo 64 bits que representa la trama IR
 uint64_t Control::getCode(function_t function) {
-    // EN DESARROLLO devuelve el codigo del control remoto mapeado a su protocolo
-    // probablemente un switch case?
     uint64_t code = 0;
-    Serial.print("Size: ");
-    Serial.println(m_protocol.functions_length);
     for (uint32_t i = 0; i < m_protocol.functions_length; i++) {
         if (function == m_protocol.functions[i].function) {
             code = m_protocol.functions[i].code;
             break;
         }  
     }
-    Serial.print("Codigo: ");
     Serial.println(code);
     return code;
 }
 
-// @return True if it is a type we can attempt to send, false if not.
+/// @brief Envía una trama IR
+/// @param function Funcion que se desea realizar con el control
+/// @param irsend Referencia al objeto IRsend que maneja la transmision IR
+/// @return True si se envió sin errores, False en caso contrario
 bool Control::send(function_t function, IRsend &irsend) {
-    Serial.println("Control.send");
     uint64_t code = getCode(function);
     if (code != 0) {
-      Serial.print("Sending");
-      return irsend.send(m_protocol.name, code, m_protocol.nbits); // lleva parametros nbits y repeat?
+      return irsend.send(m_protocol.name, code, m_protocol.nbits);
     } else {
       return false;
     }
 }        
 
-
+/// @brief Constructor de clase AC_Control
+/// @param name Nombre del control
+/// @param protocol Protocolo que utiliza
 AC_Control::AC_Control(String name, protocol_t protocol) : Control(name, protocol) {
-  power = false;
-  turbo = false;
-  sleep = false;
-  led = false;
-  swing = false;
-  temp = 25;
-  fan = 0;
-  mode = 0;
-  m_state = generateState();
-  Serial.println("AC_Control class created");
+    initializeState();
 }
 
+/// @brief Envía el estado del A/C codificado en una trama IR
+/// @param function Funcion que se desea realizar con el control
+/// @param irsend Referencia al objeto IRsend que maneja la transmision IR
+/// @return True si se envió sin errores, False en caso contrario
+
 bool AC_Control::send(function_t function, IRsend &irsend) {
+  
     // Sobreescribe Control::send, de esta forma generalizamos todos los controles
     bool ret = true;
-    Serial.print("Executing function: ");
-    Serial.print(function);
 
     uint32_t code;
 
     switch (function) {
         case POWER:
             power = !power;
-            // para prender tiene que generar el estado, para apagar manda siempre el mismo estado
+            // Para prender tiene que generar el estado, para apagar envía siempre el mismo estado
             code = (power) ? convertState() : kCoolixPower; 
+            return irsend.send(getProtocol(), code, getNBits());
             break;
         case TEMP_UP:
-            (temp < maxTemp) ? temp++ : ret = false;
-            code = convertState();
+            // Si ya esta en el maximo de temperatura, no transmite nada ya que no hay ningun cambio
+            if (temp < maxTemp) {
+              temp++;
+              code = convertState();
+            } else {
+              return false;
+            }
             break;
         case TEMP_DOWN:
-            (temp > minTemp) ? temp-- : ret = false;
-            code = convertState();
+            // Si ya esta en el minimo de temperatura, no transmite nada ya que no hay ningun cambio
+            if (temp > minTemp) {
+              temp--;
+              code = convertState();
+            } else {
+              return false;
+            }
             break;
         case MODE:
             mode = (mode + 1) % sizeof(kCoolixModeMap)/sizeof(uint8_t);
@@ -78,51 +84,77 @@ bool AC_Control::send(function_t function, IRsend &irsend) {
             fan = (fan + 1) % sizeof(kCoolixFanMap)/sizeof(uint8_t); 
             code = convertState();
             break;
+        // Los siguientes son todos mensajes "toggle" por lo que no tiene sentido enviarlos si esta apagado el aire
         case TURBO:
-            turbo = !turbo;
-            code = kCoolixTurbo;
+            if (power) {
+              turbo = !turbo;
+              code = kCoolixTurbo;
+            }
             break;
         case SLEEP:
-            sleep = !sleep;
-            code = kCoolixSleep;
+            if (power) {
+              sleep = !sleep;
+              code = kCoolixSleep;
+            }
             break;
         case LED:
-            led = !led;
-            code = kCoolixLight;
+            if (power) {
+              led = !led;
+              code = kCoolixLight;
+            }
             break;
         case SWING:
-            swing = !swing;
-            code = kCoolixSwing;
+            if (power) {
+              swing = !swing;
+              code = kCoolixSwing;
+            }
             break;
     }
 
-    ret = irsend.send(getProtocol(), code, getNBits());
+    Serial.print("Codigo: ");
+    Serial.println(code);
+    if (power) {
+      ret = irsend.send(getProtocol(), code, getNBits());
+    }
     
     return ret;
 }
 
+/// @brief Inicializa el estado del A/C
+void AC_Control::initializeState() {
+  Serial.println("Iniciando state");
+  power = false;    // Apagado
+  turbo = false;    // Turbo = false
+  sleep = false;    // Sleep = false
+  led = false;      // Led = apagado
+  swing = false;    // Swing = apagado
+  temp = 25;        // Temperatura = 25°C
+  fan = 0;          // Ventilador = automatico
+  mode = 0;         // Modo = automatico
+  updateState();
+}
+
+/// @brief Codifica el estado del A/C en un codigo de 32 bits para transmitirlo
+/// @return Codigo de 32 bits a transmitir
 uint32_t AC_Control::convertState() {
-    m_state = generateState();
+    updateState();
     return (m_state.fixed << 19) | (m_state.unk1 << 16) | (m_state.fan << 13) | (m_state.sensor << 8) | (m_state.temp << 4) | (m_state.mode << 2) | (m_state.unk2);
 }
 
-state_t AC_Control::generateState() {
-    // idealmente es un union o bitfield?
-    //uint32_t state = 0b10110 << 26;
-    //state |= 0b010 << 
-    state_t newState;
-    newState.fixed = 0b10110;
-    newState.unk1 = 0b010;
-    if (mode == 0) newState.fan = kCoolixFanMapCool[fan];
-    else newState.fan = kCoolixFanMap[fan];
-    newState.sensor = 0b1111;
-    newState.temp = kCoolixTempMap[temp-17];
-    newState.mode = kCoolixModeMap[mode];
-    newState.unk2 = 0b00;
-
-    return newState;
+/// @brief Actualiza el estado del A/C en funcion de las variables
+void AC_Control::updateState() {
+    m_state.fixed = 0b10110;
+    m_state.unk1 = 0b010;
+    if (mode == 0) m_state.fan = kCoolixFanMapCool[fan];
+    else m_state.fan = kCoolixFanMap[fan];
+    m_state.sensor = 0b1111;
+    m_state.temp = kCoolixTempMap[temp-17];
+    m_state.mode = kCoolixModeMap[mode];
+    m_state.unk2 = 0b00;
 }
 
+/// @brief Convierte el estado del A/C a un JSON para enviar a la web
+/// @return JSON que contiene el estado del A/C
 DynamicJsonDocument AC_Control::toJSON(){
     DynamicJsonDocument doc(512);
 
@@ -137,6 +169,9 @@ DynamicJsonDocument AC_Control::toJSON(){
 
     return doc;
 }
+
+
+/* Definicion de arrays constantes */
 
 uint8_t AC_Control::kCoolixTempMap[14] = {
     0b0000,  // 17C
@@ -159,31 +194,21 @@ uint8_t AC_Control::kCoolixFanMapCool[4] = {
     0b101,  // Auto alt se activa en modo cool
     0b100,  // Min
     0b010,  // Med
-    0b001  // Max
-    //0b111  // Fixed?
+    0b001   // Max
 };
 
 uint8_t AC_Control::kCoolixFanMap[4] = {
     0b000,  // Auto
     0b100,  // Min
     0b010,  // Med
-    0b001  // Max
-    //0b111  // Fixed?
+    0b001   // Max
 };
 
 uint8_t AC_Control::kCoolixModeMap[4] = {
     0b00,  // Cool
     0b01,  // Dry
     0b10,  // Auto
-    0b11  // Heat
-    //0b100,  // Fan, 1 bit mas?
+    0b11   // Heat
 };
 
-/*
-const uint8_t kCoolingSwingMap[] {
-    auto
-    low
-    mid
-    high
-}; 
-*/
+/* ------------------- */

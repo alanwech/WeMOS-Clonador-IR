@@ -1,10 +1,21 @@
 #include "protocols.h"
 
+/*  Este archivo define los protocolos conocidos.
+ *  Para cada protocolo se define :
+ *  - decode_type_t name: identificador del protocolo (decode_type_t definido en la libreria IRremote)
+ *  - key *functions: array de funciones que contiene la trama IR correspondiente a cada funcion
+ *  - functions_length: longitud del array de funciones
+ *  - nbits: longitud en bits de la trama a transmitir
+ *  
+ *  Junto con cada protocol_t se define el array de funciones correspondiente.
+ */
+
 #define NIKAI_LENGTH  15
 #define RC5_LENGTH    15
 #define SONY_LENGTH   15
 #define EPSON_LENGTH  18
 
+/* Protocolo Nikai */
 protocol_t Nikai_Protocol = {NIKAI, nikai_functions, NIKAI_LENGTH, 24};
 
 key nikai_functions[NIKAI_LENGTH] = {
@@ -24,7 +35,10 @@ key nikai_functions[NIKAI_LENGTH] = {
   {0xC0F3F, MUTE},
   {0x5CFA3, SOURCE}
 };
+/* --------------- */
 
+
+/* Protocolo RC5 */
 protocol_t RC5_Protocol = {RC5, rc5_functions, RC5_LENGTH, 12};
 
 key rc5_functions[RC5_LENGTH] = {
@@ -44,7 +58,9 @@ key rc5_functions[RC5_LENGTH] = {
   {0x80D, MUTE},
   {0x838, SOURCE}
 };
+/* --------------- */
 
+/* Protocolo Sony */
 protocol_t Sony_Protocol = {SONY, sony_functions, SONY_LENGTH, 12};
 
 key sony_functions[SONY_LENGTH] = {
@@ -64,7 +80,9 @@ key sony_functions[SONY_LENGTH] = {
   {0x290, MUTE},
   {0xA50, SOURCE}
 };
+/* --------------- */
 
+/* Protocolo EPSON */
 protocol_t Epson_Protocol = {EPSON, epson_functions, EPSON_LENGTH, 32};
 
 key epson_functions[EPSON_LENGTH] = {
@@ -87,6 +105,11 @@ key epson_functions[EPSON_LENGTH] = {
   {0xC1AA49B6, FREEZE},
   {0xC1AAC936, MUTE}
 };
+/* --------------- */
 
-// Los protocolos de A/C no tienen una lista de funciones
+
+// Los protocolos de A/C no tienen una lista de funciones, por lo que no se definen los campos functions y functions_length 
+
+/* Protocolo Coolix */
 protocol_t Coolix_Protocol = {COOLIX, 0, 0, 24};
+/* --------------- */

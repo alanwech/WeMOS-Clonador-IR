@@ -13,27 +13,28 @@
 #include "IRtext.h"
 #include "IRutils.h"
 
-#define ACCESS_POINT 0
-#define DEBUG_TRAMAS 1
+#define ACCESS_POINT 0    // Define si trabajar como AP o como station
+#define DEBUG_TRAMAS 1    // Con Debug=1 se imprime informacion de las tramas enviadas en caso de tener el receptor IR conectado
 
 #ifndef STASSID
 #if ACCESS_POINT
-
+// En caso de trabajar como AP, define el nombre de la red WiFi y su contraseña
 #define STASSID "WifiPlaca"
 #define STAPSK  "123456789"
 
 #else
-
+// En caso de trabajar como estacion WiFi, define los datos de la red a conectarse
 #define STASSID "Fibertel Thea 2.4 GHz."
 #define STAPSK  "c413209720" //COMPLETAR CON PASSWORD FUERA DE GIT
 
 #endif
 #endif
 
-#define IR_SEND_LED 12    // GPIO12 = D6
-#define IR_RECV_PIN 14    // GPIO14 = D5
+#define IR_SEND_LED 12    // GPIO12 = D6, transmisor IR
+#define IR_RECV_PIN 14    // GPIO14 = D5, receptor IR
 
 #if DEBUG_TRAMAS
+// Parametros que se definen en caso de utilizar Debug de tramas
 const uint32_t kBaudRate = 115200;
 const uint16_t kCaptureBufferSize = 1024;
 const uint8_t kTimeout = 60;
@@ -43,16 +44,16 @@ IRrecv irrecv(IR_RECV_PIN, kCaptureBufferSize, kTimeout, true);
 decode_results results;  // Somewhere to store the results
 #endif
 
+
 const char* ssid = STASSID;
 const char* password = STAPSK;
-
-//IPAddress apIP(192, 168, 0, 110); // Defining a static IP address: local & gateway
-                                // Default IP in AP mode is 192.168.4.1
-
-//IPAddress apIP(192, 168, 1, 19);
 ESP8266WebServer server(80);
 
 IRsend irsend(IR_SEND_LED);
+
+
+// Controles definidos
+#define N_DEVICES 5
 
 Control TV_JVC("tv_jvc", RC5_Protocol);
 Control TV_TCL("tv_tcl", Nikai_Protocol);
@@ -60,15 +61,16 @@ Control TV_Sony("tv_sony", Sony_Protocol);
 Control Proyector("proyector", Epson_Protocol);
 AC_Control Aire("aire", Coolix_Protocol);
 
-Control *devices[] = {&TV_JVC, &TV_TCL, &TV_Sony, &Proyector, &Aire};
+Control *devices[N_DEVICES] = {&TV_JVC, &TV_TCL, &TV_Sony, &Proyector, &Aire};
+// ---------------
 
-bool power = false;
-const int led = 13;
 
+/* Pagina principal */
 void handleRoot() {
   server.send(200, "text/html", webpage);
 }
 
+/* Recibir comandos de dispositivos */
 void handleCommand(){
     String postBody = server.arg("plain");
     Serial.println(postBody);
@@ -96,17 +98,15 @@ void handleCommand(){
  
                 Serial.println(F("done."));
  
-                // Here store data or doing operation
- 
-                String disp = postObj["dispositivo"];
-                function_t function = postObj["id"];
+                String disp = postObj["dispositivo"];   // Dispositivo que se quiere controlar
+                function_t function = postObj["id"];    // Funcion que se quiere realizar
 
-                Serial.println(disp);
-                Serial.println(function);
-                uint64_t code;
+                Serial.print("Dispositivo: "); Serial.println(disp);
+                Serial.print("Funcion: "); Serial.println(function);
 
+                // Busca el dispositivo en el array y llama a la funcion send
                 bool success = false;
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < N_DEVICES; i++) {
                   if (devices[i]->getName() == disp) {
                     success = devices[i]->send(function, irsend);
                     break;
@@ -146,7 +146,6 @@ void handleCommand(){
                   yield();  // Feed the WDT as the text output can take a while to print.
                 }
 #endif
-                 
                 // Create the response
                 // To get the status of the result you can get the http status so
                 // this part can be unusefully
@@ -187,8 +186,9 @@ void handleStatus(){
   Serial.print(F("done."));
 }
 
+/* Pagina no encontrada */
 void handleNotFound() {
-  digitalWrite(led, 1);
+  
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -205,8 +205,6 @@ void handleNotFound() {
 
 void setup(void) {
   Serial.begin(115200);
-
-
 
 #if ACCESS_POINT
 
@@ -244,29 +242,30 @@ void setup(void) {
 
 #endif
 
-
+  /* Servidor Web */
   server.on("/", handleRoot);
-  
   server.on(F("/command"), HTTP_POST, handleCommand);
-
   server.on(F("/status"), HTTP_GET, handleStatus);
-
   server.onNotFound(handleNotFound);
 
   server.begin();
   Serial.println("HTTP server started");
+  /* ------------------ */
 
+  /* Transmision - Recepcion IR */
+
+  // Iniciar transmisor IR
   irsend.begin();
   Serial.println("IRsend started");
 
-  Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", IR_RECV_PIN);
-
-#if DECODE_HASH
-  // Ignore messages with less than minimum on or off pulses.
-  irrecv.setUnknownThreshold(kMinUnknownSize);
-#endif  // DECODE_HASH
+#if DEBUG_TRAMAS
+  // Iniciar receptor IR
   irrecv.setTolerance(kTolerancePercentage);  // Override the default tolerance.
   irrecv.enableIRIn();  // Start the receiver
+  Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", IR_RECV_PIN);
+#endif
+
+  /* ------------------ */
 }
 
 void loop(void) {
