@@ -1,3 +1,13 @@
+- [WeMOS-Clonador-IR](#wemos-clonador-ir)
+  - [Librerías utilizadas](#librerías-utilizadas)
+  - [Instalación y requerimientos](#instalación-y-requerimientos)
+  - [Cómo usar](#cómo-usar)
+    - [Server.ino](#serverino)
+    - [Pagina.h](#paginah)
+    - [Control.h](#controlh)
+    - [Protocols.h](#protocolsh)
+  - [Formas de contribuir](#formas-de-contribuir)
+
 # WeMOS-Clonador-IR
 Sistema de escaneo, administración y clonado de controles remotos infrarrojos.
 
