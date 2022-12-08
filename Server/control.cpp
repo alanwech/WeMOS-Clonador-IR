@@ -56,6 +56,7 @@ bool AC_Control::send(function_t function, IRsend &irsend) {
             power = !power;
             // para prender tiene que generar el estado, para apagar manda siempre el mismo estado
             code = (power) ? convertState() : kCoolixPower; 
+            return irsend.send(getProtocol(), code, getNBits());
             break;
         case TEMP_UP:
             (temp < maxTemp) ? temp++ : ret = false;
@@ -74,26 +75,36 @@ bool AC_Control::send(function_t function, IRsend &irsend) {
             code = convertState();
             break;
         case TURBO:
-            turbo = !turbo;
-            code = kCoolixTurbo;
+            if (power) {
+              turbo = !turbo;
+              code = kCoolixTurbo;
+            }
             break;
         case SLEEP:
-            sleep = !sleep;
-            code = kCoolixSleep;
+            if (power) {
+              sleep = !sleep;
+              code = kCoolixSleep;
+            }
             break;
         case LED:
-            led = !led;
-            code = kCoolixLight;
+            if (power) {
+              led = !led;
+              code = kCoolixLight;
+            }
             break;
         case SWING:
-            swing = !swing;
-            code = kCoolixSwing;
+            if (power) {
+              swing = !swing;
+              code = kCoolixSwing;
+            }
             break;
     }
 
     Serial.print("Codigo: ");
     Serial.println(code);
-    ret = irsend.send(getProtocol(), code, getNBits());
+    if (power) {
+      ret = irsend.send(getProtocol(), code, getNBits());
+    }
     
     return ret;
 }

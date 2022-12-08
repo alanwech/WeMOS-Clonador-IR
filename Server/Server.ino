@@ -51,18 +51,26 @@ ESP8266WebServer server(80);
 
 IRsend irsend(IR_SEND_LED);
 
+
+// Controles definidos
+#define N_DEVICES 5
+
 Control TV_JVC("tv_jvc", RC5_Protocol);
 Control TV_TCL("tv_tcl", Nikai_Protocol);
 Control TV_Sony("tv_sony", Sony_Protocol);
 Control Proyector("proyector", Epson_Protocol);
 AC_Control Aire("aire", Coolix_Protocol);
 
-Control *devices[] = {&TV_JVC, &TV_TCL, &TV_Sony, &Proyector, &Aire};
+Control *devices[N_DEVICES] = {&TV_JVC, &TV_TCL, &TV_Sony, &Proyector, &Aire};
+// ---------------
 
+
+/* Pagina principal */
 void handleRoot() {
   server.send(200, "text/html", webpage);
 }
 
+/* Recibir comandos de dispositivos */
 void handleCommand(){
     String postBody = server.arg("plain");
     Serial.println(postBody);
@@ -90,26 +98,19 @@ void handleCommand(){
  
                 Serial.println(F("done."));
  
-                // Here store data or doing operation
- 
-                String disp = postObj["dispositivo"];
-                function_t function = postObj["id"];
+                String disp = postObj["dispositivo"];   // Dispositivo que se quiere controlar
+                function_t function = postObj["id"];    // Funcion que se quiere realizar
 
-                Serial.println(disp);
-                Serial.println(function);
-                uint64_t code;
-
+                Serial.print("Dispositivo: "); Serial.println(disp);
+                Serial.print("Funcion: "); Serial.println(function);
+                
                 bool success = false;
-                if (disp == "aire") {
-                  success = Aire.send(function, irsend);
-                } else {
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < N_DEVICES; i++) {
                   if (devices[i]->getName() == disp) {
                     Serial.println("Sending");
                     success = devices[i]->send(function, irsend);
                     break;
                   }
-                }
                 }
 
                 if (success) {
@@ -243,11 +244,8 @@ void setup(void) {
 
   /* Servidor Web */
   server.on("/", handleRoot);
-  
   server.on(F("/command"), HTTP_POST, handleCommand);
-
   server.on(F("/status"), HTTP_GET, handleStatus);
-
   server.onNotFound(handleNotFound);
 
   server.begin();
@@ -256,10 +254,12 @@ void setup(void) {
 
   /* Transmision - Recepcion IR */
 
+  // Iniciar transmisor IR
   irsend.begin();
   Serial.println("IRsend started");
 
 #if DEBUG_TRAMAS
+  // Iniciar receptor IR
   irrecv.setTolerance(kTolerancePercentage);  // Override the default tolerance.
   irrecv.enableIRIn();  // Start the receiver
   Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", IR_RECV_PIN);
