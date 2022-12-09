@@ -14,7 +14,7 @@
 #include "IRutils.h"
 
 #define ACCESS_POINT 0    // Define si trabajar como AP o como station
-#define DEBUG_TRAMAS 1    // Con Debug=1 se imprime informacion de las tramas enviadas en caso de tener el receptor IR conectado
+#define DEBUG_TRAMAS 1    // Con Debug=1 se imprime informacion de las tramas enviadas
 
 #ifndef STASSID
 #if ACCESS_POINT
@@ -33,8 +33,16 @@
 #define IR_SEND_LED 12    // GPIO12 = D6, transmisor IR
 #define IR_RECV_PIN 14    // GPIO14 = D5, receptor IR
 
-#if DEBUG_TRAMAS
-// Parametros que se definen en caso de utilizar Debug de tramas
+
+const char* ssid = STASSID;
+const char* password = STAPSK;
+ESP8266WebServer server(80);
+
+bool receivingIR = false;
+
+IRsend irsend(IR_SEND_LED);
+
+// Parametros para recepcion de tramas
 const uint32_t kBaudRate = 115200;
 const uint16_t kCaptureBufferSize = 1024;
 const uint8_t kTimeout = 60;
@@ -42,15 +50,6 @@ const uint16_t kMinUnknownSize = 12;
 const uint8_t kTolerancePercentage = kTolerance;  // kTolerance is normally 25%
 IRrecv irrecv(IR_RECV_PIN, kCaptureBufferSize, kTimeout, true);
 decode_results results;  // Somewhere to store the results
-#endif
-
-
-const char* ssid = STASSID;
-const char* password = STAPSK;
-ESP8266WebServer server(80);
-
-IRsend irsend(IR_SEND_LED);
-
 
 // Controles definidos
 #define N_DEVICES 5
@@ -72,107 +71,86 @@ void handleRoot() {
 
 /* Recibir comandos de dispositivos */
 void handleCommand(){
-    String postBody = server.arg("plain");
-    Serial.println(postBody);
- 
-    DynamicJsonDocument doc(512);
-    DeserializationError error = deserializeJson(doc, postBody);
-    if (error) {
-        // if the file didn't open, print an error:
-        Serial.print(F("Error parsing JSON "));
-        Serial.println(error.c_str());
- 
-        String msg = error.c_str();
- 
-        server.send(400, F("text/html"),
-                "Error in parsin json body! <br>" + msg);
- 
-    } else {
-        JsonObject postObj = doc.as<JsonObject>();
- 
-        Serial.print(F("HTTP Method: "));
-        Serial.println(server.method());
- 
-        if (server.method() == HTTP_POST) {
-            if (postObj.containsKey("dispositivo") && postObj.containsKey("id")) {
- 
-                Serial.println(F("done."));
- 
-                String disp = postObj["dispositivo"];   // Dispositivo que se quiere controlar
-                function_t function = postObj["id"];    // Funcion que se quiere realizar
-
-                Serial.print("Dispositivo: "); Serial.println(disp);
-                Serial.print("Funcion: "); Serial.println(function);
-
-                // Busca el dispositivo en el array y llama a la funcion send
-                bool success = false;
-                for (int i = 0; i < N_DEVICES; i++) {
-                  if (devices[i]->getName() == disp) {
-                    success = devices[i]->send(function, irsend);
-                    break;
-                  }
+    if (!receivingIR) {
+        String postBody = server.arg("plain");
+        Serial.println(postBody);
+     
+        DynamicJsonDocument doc(512);
+        DeserializationError error = deserializeJson(doc, postBody);
+        if (error) {
+            // if the file didn't open, print an error:
+            Serial.print(F("Error parsing JSON "));
+            Serial.println(error.c_str());
+     
+            String msg = error.c_str();
+     
+            server.send(400, F("text/html"),
+                    "Error in parsin json body! <br>" + msg);
+     
+        } else {
+            JsonObject postObj = doc.as<JsonObject>();
+     
+            Serial.print(F("HTTP Method: "));
+            Serial.println(server.method());
+     
+            if (server.method() == HTTP_POST) {
+                if (postObj.containsKey("dispositivo") && postObj.containsKey("id")) {
+     
+                    Serial.println(F("done."));
+     
+                    String disp = postObj["dispositivo"];   // Dispositivo que se quiere controlar
+                    function_t function = postObj["id"];    // Funcion que se quiere realizar
+    
+                    Serial.print("Dispositivo: "); Serial.println(disp);
+                    Serial.print("Funcion: "); Serial.println(function);
+    
+                    // Busca el dispositivo en el array y llama a la funcion send
+                    bool success = false;
+                    for (int i = 0; i < N_DEVICES; i++) {
+                      if (devices[i]->getName() == disp) {
+                        success = devices[i]->send(function, irsend);
+                        break;
+                      }
+                    }
+    
+                    if (success) {
+                      Serial.println("Sent successfully");
+                    } else {
+                      Serial.println("Could not send");
+                    }
+    
+                    
+    #if DEBUG_TRAMAS
+                    checkIRrecv();
+    #endif
+                    // Create the response
+                    // To get the status of the result you can get the http status so
+                    // this part can be unusefully
+                    DynamicJsonDocument doc(512);
+                    doc["status"] = "OK";
+     
+                    Serial.print(F("Stream..."));
+                    String buf;
+                    serializeJson(doc, buf);
+     
+                    server.send(201, F("application/json"), buf);
+                    Serial.print(F("done."));
+     
+                }else {
+                    DynamicJsonDocument doc(512);
+                    doc["status"] = "KO";
+                    doc["message"] = F("No data found, or incorrect!");
+     
+                    Serial.print(F("Stream..."));
+                    String buf;
+                    serializeJson(doc, buf);
+     
+                    server.send(400, F("application/json"), buf);
+                    Serial.print(F("done."));
                 }
-
-                if (success) {
-                  Serial.println("Sent successfully");
-                } else {
-                  Serial.println("Could not send");
-                }
-
-                
-#if DEBUG_TRAMAS
-                if (irrecv.decode(&results)) {
-                  // Display a crude timestamp.
-                  uint32_t now = millis();
-                  Serial.printf(D_STR_TIMESTAMP " : %06u.%03u\n", now / 1000, now % 1000);
-                  
-                  // Check if we got an IR message that was to big for our capture buffer.
-                  if (results.overflow)
-                    Serial.printf(D_WARN_BUFFERFULL "\n", kCaptureBufferSize);
-                  
-                  // Display the library version the message was captured with.
-                  Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
-                  
-                  // Display the tolerance percentage if it has been change from the default.
-                  if (kTolerancePercentage != kTolerance)
-                    Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
-                  
-                  // Display the basic output of what we found.
-                  Serial.print(resultToHumanReadableBasic(&results));
-                  
-                  // Display any extra A/C info if we have it.
-                  String description = IRAcUtils::resultAcToString(&results);
-                  if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
-                  yield();  // Feed the WDT as the text output can take a while to print.
-                }
-#endif
-                // Create the response
-                // To get the status of the result you can get the http status so
-                // this part can be unusefully
-                DynamicJsonDocument doc(512);
-                doc["status"] = "OK";
- 
-                Serial.print(F("Stream..."));
-                String buf;
-                serializeJson(doc, buf);
- 
-                server.send(201, F("application/json"), buf);
-                Serial.print(F("done."));
- 
-            }else {
-                DynamicJsonDocument doc(512);
-                doc["status"] = "KO";
-                doc["message"] = F("No data found, or incorrect!");
- 
-                Serial.print(F("Stream..."));
-                String buf;
-                serializeJson(doc, buf);
- 
-                server.send(400, F("application/json"), buf);
-                Serial.print(F("done."));
             }
         }
-    }
+    } // modo
 }
 
 void handleStatus(){
@@ -184,6 +162,13 @@ void handleStatus(){
 
   server.send(200, F("application/json"), buf);
   Serial.print(F("done."));
+}
+
+void handleMode() {
+    receivingIR = !receivingIR;
+
+    server.send(200, "text/plain", "");
+    Serial.println("Changed mode.");
 }
 
 /* Pagina no encontrada */
@@ -202,6 +187,38 @@ void handleNotFound() {
   }
   server.send(404, "text/plain", message);
 }
+
+
+/*  Verifica si se ha recibido una trama IR con el receptor.
+ *  En caso de que sí, se muestra el contenido a traves del monitor serie.
+ */
+void checkIRrecv() {
+    if (irrecv.decode(&results)) {
+        // Display a crude timestamp.
+        uint32_t now = millis();
+        Serial.printf(D_STR_TIMESTAMP " : %06u.%03u\n", now / 1000, now % 1000);
+        
+        // Check if we got an IR message that was to big for our capture buffer.
+        if (results.overflow)
+          Serial.printf(D_WARN_BUFFERFULL "\n", kCaptureBufferSize);
+        
+        // Display the library version the message was captured with.
+        Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
+        
+        // Display the tolerance percentage if it has been change from the default.
+        if (kTolerancePercentage != kTolerance)
+          Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
+        
+        // Display the basic output of what we found.
+        Serial.print(resultToHumanReadableBasic(&results));
+        
+        // Display any extra A/C info if we have it.
+        String description = IRAcUtils::resultAcToString(&results);
+        if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
+        yield();  // Feed the WDT as the text output can take a while to print.
+    }
+}
+
 
 void setup(void) {
   Serial.begin(115200);
@@ -246,6 +263,7 @@ void setup(void) {
   server.on("/", handleRoot);
   server.on(F("/command"), HTTP_POST, handleCommand);
   server.on(F("/status"), HTTP_GET, handleStatus);
+  server.on(F("/mode"), HTTP_GET, handleMode);
   server.onNotFound(handleNotFound);
 
   server.begin();
@@ -258,17 +276,18 @@ void setup(void) {
   irsend.begin();
   Serial.println("IRsend started");
 
-#if DEBUG_TRAMAS
   // Iniciar receptor IR
   irrecv.setTolerance(kTolerancePercentage);  // Override the default tolerance.
   irrecv.enableIRIn();  // Start the receiver
   Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", IR_RECV_PIN);
-#endif
 
   /* ------------------ */
 }
 
 void loop(void) {
-  server.handleClient();
-  MDNS.update();
+    server.handleClient();
+    if (receivingIR) {
+        checkIRrecv();
+    }
+    MDNS.update();
 }
