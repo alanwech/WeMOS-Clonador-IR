@@ -15,6 +15,14 @@ const char webpage[] =
                 display: inline-block;
                 font-size: 16px;
             }
+
+            button:disabled,
+            button[disabled]{
+                border: 1px solid #999999;
+                background-color: #cccccc;
+                color: #666666;
+            }
+
             .col {
                 float: left;
                 width: 23.33%;
@@ -68,13 +76,13 @@ const char webpage[] =
             <div>
                 <div class="row">
                     <div class="col">
-                        <button class="button" onclick="display('televisor')">Television</button>
+                        <button id="tv_button" class="button" onclick="display('televisor')">Television</button>
                     </div>
                     <div class="col">
-                        <button class="button" onclick="display('aire')">Aire Acondicionado</button><BR>
+                        <button id="ac_button" class="button" onclick="display('aire')">Aire Acondicionado</button><BR>
                     </div>
                     <div class="col">
-                        <button class="button" onclick="display('proyector')">Proyector</button><BR>
+                        <button id="proy_button" class="button" onclick="display('proyector')">Proyector</button><BR>
                     </div>
                 </div>
             </div><br><hr>
@@ -264,6 +272,14 @@ const char webpage[] =
                     </div>
                 </div>
             </div>
+            <hr>
+            <div>
+                <div class="row centrar">
+                    <div class="col centrar">
+                        <button id="chmod_butt" class="button" onclick="change_mode()" style="background-color: #eb9502;">PASAR A LECTURA DE TRAMAS</button>
+                    </div>
+                </div>
+            </div>
             <script>
                 const buttons = {
                     'POWER': 0,
@@ -321,6 +337,8 @@ const char webpage[] =
 
                 const controles = ['televisor','aire','proyector']
 
+                const botones = ['tv_button','ac_button','proy_button']
+
                 const grados = '%C2%B0C'
                 const f_izquierda = '%E2%86%90'
                 const f_arriba = '%E2%86%91'
@@ -328,6 +346,8 @@ const char webpage[] =
                 const f_abajo = '%E2%86%93'
 
                 var device
+
+                var modo_lectura = false
 
                 function init(){
                     get_status()
@@ -343,6 +363,7 @@ const char webpage[] =
                     document.getElementById("f_arriba_p").innerHTML = decodeURI(f_arriba)
                     document.getElementById("f_derecha_p").innerHTML = decodeURI(f_derecha)
                     document.getElementById("f_abajo_p").innerHTML = decodeURI(f_abajo)
+                    
                 }
 
                 function display(id) {
@@ -362,7 +383,6 @@ const char webpage[] =
 
                 function send_command(id){
                     const http = new window.XMLHttpRequest()
-                    //http.open('POST','http://192.168.0.110/command',true)
                     http.open('POST', window.location.href + 'command',true)
                     http.onreadystatechange = function() {
                         if (device == 'aire' && this.readyState == 4 && this.status == 201) {
@@ -390,6 +410,33 @@ const char webpage[] =
                     }
                     http.getResponseHeader("Content-type", "application/json")
                     http.open('GET', window.location.href + 'status',true)
+                    http.send()
+                }
+
+                function change_mode(){
+                    const http = new window.XMLHttpRequest()
+                    http.onreadystatechange = function() {
+                        if (this.readyState == 4 && this.status == 200) {
+                            if (!modo_lectura){
+                                controles.forEach(element => {
+                                    document.getElementById(element).style.display = "none"
+                                });
+                                botones.forEach(element => {
+                                    document.getElementById(element).disabled = true
+                                });
+                                document.getElementById("chmod_butt").textContent = "PASAR A EMISION DE TRAMAS"
+                                modo_lectura = true
+                            } else {
+                                botones.forEach(element => {
+                                    document.getElementById(element).disabled = false
+                                });
+                                document.getElementById("chmod_butt").textContent = "PASAR A LECTURA DE TRAMAS"
+                                modo_lectura = false
+                            }
+                        }
+                    }
+                    http.getResponseHeader("Content-type", "application/json")
+                    http.open('GET', window.location.href + 'mode',true)
                     http.send()
                 }
             </script>
