@@ -39,7 +39,10 @@ const char webpage[] =
             }
             .centrar {
                 width: 400px;
-                padding: 10px;
+                padding-left: 0px;
+                padding-top: 6px;
+                padding-right: 0px;
+                padding-bottom: 6px;
                 margin:auto;
             }
 

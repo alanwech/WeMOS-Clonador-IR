@@ -13,7 +13,7 @@
 #include "IRtext.h"
 #include "IRutils.h"
 
-#define ACCESS_POINT 0    // Define si trabajar como AP o como station
+#define ACCESS_POINT 1    // Define si trabajar como AP o como station
 #define DEBUG_TRAMAS 1    // Con Debug=1 se imprime informacion de las tramas enviadas
 
 #ifndef STASSID
@@ -33,7 +33,7 @@
 #define IR_SEND_LED 12    // GPIO12 = D6, transmisor IR
 #define IR_RECV_PIN 14    // GPIO14 = D5, receptor IR
 
-
+IPAddress    apIP(42, 42, 42, 42);
 const char* ssid = STASSID;
 const char* password = STAPSK;
 ESP8266WebServer server(80);
@@ -226,7 +226,9 @@ void setup(void) {
 #if ACCESS_POINT
 
   WiFi.mode(WIFI_AP);
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));   // subnet FF FF FF 00  
   WiFi.softAP(ssid, password);
+  
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
