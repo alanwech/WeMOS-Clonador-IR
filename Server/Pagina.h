@@ -353,8 +353,6 @@ const char webpage[] =
                 var modo_lectura = false
 
                 function init(){
-                    get_status()
-
                     document.getElementById("f_izquierda_tv").innerHTML = decodeURI(f_izquierda)
                     document.getElementById("f_arriba_tv").innerHTML = decodeURI(f_arriba)
                     document.getElementById("f_derecha_tv").innerHTML = decodeURI(f_derecha)
@@ -388,8 +386,9 @@ const char webpage[] =
                     const http = new window.XMLHttpRequest()
                     http.open('POST', window.location.href + 'command',true)
                     http.onreadystatechange = function() {
-                        if (device == 'aire' && this.readyState == 4 && this.status == 201) {
-                            get_status()
+                        if (device == 'aire' && this.readyState == 4 && this.status == 200) {
+                            let status = JSON.parse(this.responseText)
+                            update_status(status)
                         }
                     }
                     http.setRequestHeader("Content-Type", "application/json")
@@ -398,22 +397,13 @@ const char webpage[] =
                     http.send(JSON.stringify(data))
                 }
 
-                function get_status(){
-                    const http = new window.XMLHttpRequest()
-                    http.onreadystatechange = function() {
-                        if (this.readyState == 4 && this.status == 200) {
-                            let status = JSON.parse(this.responseText)
-                            document.getElementById("mode").innerHTML = modos[status.mode]
-                            document.getElementById("fan").innerHTML = velocidades[status.fan]
-                            document.getElementById("power").innerHTML = on_off[status.power]
-                            document.getElementById("led").innerHTML = on_off[status.led]
-                            document.getElementById("swing").innerHTML = on_off[status.swing]
-                            document.getElementById("temp").innerHTML = status.temp
-                        }
-                    }
-                    http.getResponseHeader("Content-type", "application/json")
-                    http.open('GET', window.location.href + 'status',true)
-                    http.send()
+                function update_status(status){
+                    document.getElementById("mode").innerHTML = modos[status.mode]
+                    document.getElementById("fan").innerHTML = velocidades[status.fan]
+                    document.getElementById("power").innerHTML = on_off[status.power]
+                    document.getElementById("led").innerHTML = on_off[status.led]
+                    document.getElementById("swing").innerHTML = on_off[status.swing]
+                    document.getElementById("temp").innerHTML = status.temp
                 }
 
                 function change_mode(){

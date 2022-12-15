@@ -127,13 +127,19 @@ void handleCommand(){
                     // To get the status of the result you can get the http status so
                     // this part can be unusefully
                     DynamicJsonDocument doc(512);
-                    doc["status"] = "OK";
-     
-                    Serial.print(F("Stream..."));
+                    if (disp == "aire"){
+                      doc = Aire.toJSON();
+
+                      Serial.print(F("Sending Status."));
+                    } else {
+                      doc["status"] = "OK";
+      
+                      Serial.print(F("Stream..."));
+                    }
                     String buf;
                     serializeJson(doc, buf);
-     
-                    server.send(201, F("application/json"), buf);
+
+                    server.send(200, F("application/json"), buf);
                     Serial.print(F("done."));
      
                 }else {
@@ -151,17 +157,6 @@ void handleCommand(){
             }
         }
     } // modo
-}
-
-void handleStatus(){
-  DynamicJsonDocument doc = Aire.toJSON();
-
-  Serial.print(F("Sending Status."));
-  String buf;
-  serializeJson(doc, buf);
-
-  server.send(200, F("application/json"), buf);
-  Serial.print(F("done."));
 }
 
 void handleMode() {
@@ -264,7 +259,6 @@ void setup(void) {
   /* Servidor Web */
   server.on("/", handleRoot);
   server.on(F("/command"), HTTP_POST, handleCommand);
-  server.on(F("/status"), HTTP_GET, handleStatus);
   server.on(F("/mode"), HTTP_GET, handleMode);
   server.onNotFound(handleNotFound);
 
